@@ -1,3 +1,5 @@
+const puppeteer = require('puppeteer');
+
 const CGV_CONSTANT = {
     URL: 'http://www.cgv.co.kr/reserve/show-times/',
     AREA_CODE: {
@@ -32,9 +34,11 @@ const _getCGV = async (movieTitle, region, {year, month, day}) => {
         headless: false
     });
     const page = await browser.newPage();
+
     page.on('dialog', async dialog => {
         await dialog.dismiss();
     });
+
     try {
         await page.setViewport({
             width: 1280,
@@ -43,12 +47,13 @@ const _getCGV = async (movieTitle, region, {year, month, day}) => {
 
         await page.goto(config.homepage);
         await page.waitFor(1000);
-        await page.click(`#contents > div.sect-common > div > div.sect-city > ul > li:nth-child(${CGV_AREA_CODE[config.region]})`); //지역선택
+        await page.click(`#contents > div.sect-common > div > div.sect-city > ul > li:nth-child(${CGV_CONSTANT.AREA_CODE[config.region]})`); //지역선택
 
         let nthElement = 1;
         let theater = await page.evaluate(() => {
             return document.querySelector(`#contents > div.sect-common > div > div.sect-city > ul > li.on > div > ul > li:nth-child(${1}) > a`).innerHTML;
         })
+        console.log("AAAA", theater);
 
         while (theater !== config.theater) {
             nthElement++;
@@ -60,8 +65,9 @@ const _getCGV = async (movieTitle, region, {year, month, day}) => {
         const theaterCodeInner = await page.evaluate(nthElement => {
             return document.querySelector(`#contents > div.sect-common > div > div.sect-city > ul > li.on > div > ul > li:nth-child(${nthElement})`).innerHTML;
         }, nthElement)
+
         const theaterCode = theaterCodeInner.split('&')[1].split('=')[1];
-        const url = `http://www.cgv.co.kr/common/showtimes/iframeTheater.aspx?areacode=0${CGV_AREA_CODE[config.region]}&theatercode=${theaterCode}&date=${config.year}${config.month}${config.day}`;
+        const url = `http://www.cgv.co.kr/common/showtimes/iframeTheater.aspx?areacode=0${CGV_CONSTANT.AREA_CODE[config.region]}&theatercode=${theaterCode}&date=${config.year}${config.month}${config.day}`;
 
         await page.goto(url);
 
@@ -97,9 +103,6 @@ const _getCGV = async (movieTitle, region, {year, month, day}) => {
         }
 
         if (flag) {
-            const image = Date.now();
-            // await page.screenshot({path: `./screenshot/${image}.png`, fullPage: true});
-            // sendMail(image);
             console.log('예매하세요!');
         } else {
             console.log("기다리세요!");
@@ -113,7 +116,7 @@ const _getCGV = async (movieTitle, region, {year, month, day}) => {
 }
 
 const get = async () => {
-    _getCGV();
+    _getCGV('터미네이터', '서울', {year: 2019, month: 11, day: 1});
 };
 
 module.exports.get = get;
