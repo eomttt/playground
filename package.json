@@ -19,6 +19,7 @@
   "homepage": "https://github.com/eomttt/playground#readme",
   "dependencies": {
     "express": "^4.17.1",
-    "puppeteer": "^2.0.0"
+    "puppeteer": "^2.0.0",
+    "ramda": "^0.26.1"
   }
 }
