@@ -1,9 +1,14 @@
 const R = require('ramda');
 
 const SUPPORT_QUERY_LOCALE = ['en-us', 'en-sg', 'en-ph', 'en-hk', 'ko-kr', 'ja-jp'];
+const QUERY_LOCALE = 'en-us';
 
 const _hasCookies = (cookies) => {
     return cookies.get(LOCALE.CODE) && cookies.get(LOCALE.CODE_STRING) && cookies.get(CURRENCY.ID);
+};
+
+const _hasQueryLocale = (query) => {
+    return query && query.locale;
 };
 
 const _isSupportLocaleCodeString = (localeCodeString) => {
@@ -14,27 +19,16 @@ const _isObjectType = (data) => {
     return typeof(data) === 'object';
 };
 
-const _setArrayType = (data) => {
+const _setQueryLocaleArray = (data) => {
     return _isObjectType(data) ? data : [data];
 };
 
-const _removeSpace = (data) => {
-    return data.replace(/(\s)+/g, '')
+const _addDefaultQueryLocale = (data) => {
+    return [...data, QUERY_LOCALE]; 
 }
 
-const _getQueryLocale = (locale) => {
-    if (_isObjectType(locale)) {
-        const expectedLocale = locale.filter((localeCodeString) => {
-            return isSupportLocaleCodeString(localeCodeString);
-        });
-
-        if (expectedLocale.length > 0) {
-            return expectedLocale[0].replace(/(\s)+/g, '');
-        }
-
-        return '';
-    }
-    return locale.replace(/(\s)+/g, '');
+const _removeSpace = (data) => {
+    return data.replace(/(\s)+/g, '')
 }
 
 const setNewCookies = (query, acceptLanguage) => {
@@ -56,22 +50,25 @@ const setNewCookies = (query, acceptLanguage) => {
     return originCookies;
 }
 
-
 const test = async (req, res) => {
     const getQueryLocale = R.compose(
-            R.filter(_isSupportLocaleCodeString),
-            R.map(_removeSpace),
-            _setArrayType);
+        R.map(_removeSpace),
+        R.filter(_isSupportLocaleCodeString),
+        _addDefaultQueryLocale,
+        _setQueryLocaleArray
+    );
 
-    const test = getQueryLocale('ko-kr  ');
-    const test2 = getQueryLocale(['ko-kr', 'en-sg  ', 'tt']);
-    const test3 = getQueryLocale('');
+    let newLang = _hasCookies(originCookies) ? originCookies.get() : acceptLanguage;
 
-    const getDefault = R.partial()
+    if (query && query.locale) {
+        newLang = getQueryLocale(query.locale)[0];
+    }
 
-    const getCookies = R.compose(getQueryLocale);
+    return setNewCookies(originCookies, newLang);
 
-    console.log("AAA", test, test2, test3);
+
+
+    console.log("AAAA", getQueryLocale('ko-kr'), getQueryLocale(['ko-kr', 'en-sg']), getQueryLocale(''), getQueryLocale())
 };
 
 module.exports.test = test;
