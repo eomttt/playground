@@ -28,7 +28,7 @@ const _getCGV = async (movieTitle, region, {year, month, day}) => {
         year: year,
         month: month,
         day: day
-      }
+    };
 
     const browser = await puppeteer.launch({
         headless: false
