@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer');
 
-const MAX_PAGE_NUMBER = 21;
+const MAX_PAGE_NUMBER = 1;
 const KJGLASS_SHOP_GLASSES = 'http://kjglass.co.kr/shop.php?shopId=10001';
 
 const get = async () => {
@@ -21,14 +21,23 @@ const get = async () => {
         await page.waitFor(1000);
         while (pageNumber <= MAX_PAGE_NUMBER) {
             const tableRes = await page.evaluate(() => {
+                const history = [];
                 const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > a'));
-                return elements.reduce((acc, cur) => {
+                const aTagElements = elements.reduce((acc, cur) => {
                     if (cur.innerHTML.indexOf('<img') > -1) {
                         return acc;
                     }
-                    acc.push(cur.innerHTML);
+                    acc.push(cur);
                     return acc;
                 }, []);
+
+                aTagElements.forEach(async (aTagElement) => {
+                    history.push(aTagElement.innerHTML);
+                    await aTagElement.click();
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
+                    await page.goBack();
+                });
+                return history;
             });
             console.log('TTT', tableRes);
             pageNumber += 1;
