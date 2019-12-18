@@ -7,4 +7,8 @@ router.get('/get', () => {
     kjGlassController.get();
 });
 
+router.get('/get-spec', () => {
+    kjGlassController.getSpec();
+});
+
 module.exports = router;
