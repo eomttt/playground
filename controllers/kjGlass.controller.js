@@ -65,7 +65,9 @@ const getSpec = async () => {
         const tableRes = await page.evaluate(() => {
             const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td'));
             return elements.reduce((acc, cur) => {
-                if (cur.innerHTML.indexOf('<') > -1 || cur.innerHTML === '' || cur.innerHTML === '&nbsp;') {
+                if (cur.innerHTML.indexOf('<') > -1 ||
+                    cur.innerHTML === '' ||
+                    cur.innerHTML === '&nbsp;') {
                     return acc;
                 } else if (cur.innerHTML === 'Cat.no' ||
                            cur.innerHTML === '상세규격' ||
