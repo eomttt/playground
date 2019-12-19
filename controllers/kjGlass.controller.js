@@ -65,6 +65,18 @@ const getSpec = async () => {
         const tableRes = await page.evaluate(() => {
             let isSpecification = false;
             const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td'));
+            const titleInfo = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > a'));
+
+            const newTitle = titleInfo.reduce((acc, cur) => {
+                if (cur.innerHTML.indexOf('<') > -1 ||
+                    cur.innerHTML === 'Home' ||
+                    cur.innerHTML === '글라스') {
+                    return acc;
+                }
+                acc.push(cur.innerHTML);
+                return acc;
+            }, []);
+
             const elementsData = elements.reduce((acc, cur) => {
                 if (cur.innerHTML.indexOf('<') > -1 ||
                     cur.innerHTML === '' ||
@@ -89,6 +101,9 @@ const getSpec = async () => {
                 }
                 return acc;
             }, {
+                type: 'glass',
+                classify: newTitle[0],
+                title: newTitle[1],
                 content: [],
                 specification: []
             });
