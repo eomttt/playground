@@ -63,24 +63,56 @@ const getSpec = async () => {
         await page.goto(KJGLASS_SHOP_GLASS_SPECIFICATION);
         await page.waitFor(1000);
         const tableRes = await page.evaluate(() => {
+            let isSpecification = false;
             const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td'));
-            return elements.reduce((acc, cur) => {
+            const elementsData = elements.reduce((acc, cur) => {
                 if (cur.innerHTML.indexOf('<') > -1 ||
                     cur.innerHTML === '' ||
                     cur.innerHTML === '&nbsp;') {
                     return acc;
-                } else if (cur.innerHTML === 'Cat.no' ||
-                           cur.innerHTML === '상세규격' ||
+                } else if (cur.innerHTML === '상세규격' ||
                            cur.innerHTML === '가격' ||
                            cur.innerHTML === '수량' ||
                            cur.innerHTML === '장바구니' ||
                            cur.innerHTML === '회원열람') {
                     return acc;
                 }
-                acc.push(cur.innerHTML);
+
+                if (cur.innerHTML === 'Cat.no') {
+                    isSpecification = true;
+                    return acc;
+                }
+                if (isSpecification) {
+                    acc.specification.push(cur.innerHTML);
+                } else {
+                    acc.content.push(cur.innerHTML);
+                }
                 return acc;
-            }, []);
+            }, {
+                content: [],
+                specification: []
+            });
+
+            return elementsData;
         });
+
+        let idCount = 1;
+        let specificationObj = {};
+        const specificationList = [];
+
+        tableRes.specification.forEach((item, index) => {
+            if (index % 2 === 0) {
+                specificationObj.id = String(idCount);
+                specificationObj.number = item;
+            } else {
+                specificationObj.content = item;
+                specificationObj.selected = false;
+                specificationList.push(specificationObj);
+                specificationObj = {};
+                idCount += 1;
+            }
+        });
+        tableRes.specification = specificationList;
         console.log('TTT', tableRes);
         return browser.close();
     } catch (error) {
