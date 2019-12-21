@@ -21,7 +21,7 @@ const get = async () => {
         await page.goto(KJGLASS_SHOP_GLASSES);
         await page.waitFor(1000);
         while (pageNumber <= MAX_PAGE_NUMBER) {
-            const tableRes = await page.evaluate(() => {
+            const tableRes = await page.evaluate(async () => {
                 const history = [];
                 const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > a'));
                 const aTagElements = elements.reduce((acc, cur) => {
@@ -32,12 +32,75 @@ const get = async () => {
                     return acc;
                 }, []);
 
-                aTagElements.forEach(async (aTagElement) => {
-                    history.push(aTagElement.innerHTML);
-                    await aTagElement.click();
-                    await new Promise((resolve) => setTimeout(resolve, 2000));
-                    await page.goBack();
+                // for (const aTagElement of aTagElements) {
+                await aTagElements[0].click();
+                await page.waitForNavigation();
+
+                let isSpecification = false;
+                const titleInfoSpec = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > a'));
+                const elementsSpec = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td'));
+
+                const newTitle = titleInfoSpec.reduce((acc, cur) => {
+                    if (cur.innerHTML.indexOf('<') > -1 ||
+                            cur.innerHTML === 'Home' ||
+                            cur.innerHTML === '글라스') {
+                        return acc;
+                    }
+                    acc.push(cur.innerHTML);
+                    return acc;
+                }, []);
+
+                const elementsData = elementsSpec.reduce((acc, cur) => {
+                    acc.test.push(cur.innerHTML);
+                    if (cur.innerHTML.indexOf('<') > -1 ||
+                            cur.innerHTML === '' ||
+                            cur.innerHTML === '&nbsp;') {
+                        return acc;
+                    } else if (cur.innerHTML === '상세규격' ||
+                                   cur.innerHTML === '가격' ||
+                                   cur.innerHTML === '수량' ||
+                                   cur.innerHTML === '장바구니' ||
+                                   cur.innerHTML === '회원열람') {
+                        return acc;
+                    }
+
+                    if (cur.innerHTML === 'Cat.no') {
+                        isSpecification = true;
+                        return acc;
+                    }
+                    if (isSpecification) {
+                        acc.specification.push(cur.innerHTML);
+                    } else {
+                        acc.content.push(cur.innerHTML);
+                    }
+                    return acc;
+                }, {
+                    type: 'glass',
+                    classify: newTitle[0],
+                    title: newTitle[1],
+                    content: [],
+                    specification: [],
+                    test: []
                 });
+                let idCount = 1;
+                let specificationObj = {};
+                const specificationList = [];
+
+                elementsData.specification.forEach((item, index) => {
+                    if (index % 2 === 0) {
+                        specificationObj.id = String(idCount);
+                        specificationObj.number = item;
+                    } else {
+                        specificationObj.content = item;
+                        specificationObj.selected = false;
+                        specificationList.push(specificationObj);
+                        specificationObj = {};
+                        idCount += 1;
+                    }
+                });
+                elementsData.specification = specificationList;
+                history.push(elementsData);
+
                 return history;
             });
             console.log('TTT', tableRes);
