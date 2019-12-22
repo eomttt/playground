@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 
 const KJGLASS_HOST = 'http://kjglass.co.kr';
-const KJGLASS_SHOP_GLASS_SPECIFICATION = 'http://kjglass.co.kr/shop.php?shopId=1000100010001';
+const KJGLASS_SPEC_TEST_URL = 'http://kjglass.co.kr/shop.php?shopId=1000200010157';
 
 const MAX_GLASS_PAGE_NUMBER = 21;
 const KJGLASS_SHOP_GLASSES = 'http://kjglass.co.kr/shop.php?shopId=10001';
@@ -10,8 +10,8 @@ const MAX_EXPANDABLE_PAGE_NUMBER = 54;
 const KJGLASS_SHOP_EXPANDABLES = 'http://kjglass.co.kr/shop.php?shopId=10002';
 
 const get = async (type) => {
-    const pageMaxNumber = type === 'glass' ? MAX_GLASS_PAGE_NUMBER : 1;
-    const hostUrl = type === 'glass' ? KJGLASS_SHOP_GLASSES : KJGLASS_SHOP_EXPANDABLES; 
+    const pageMaxNumber = type === 'glass' ? MAX_GLASS_PAGE_NUMBER : MAX_EXPANDABLE_PAGE_NUMBER;
+    const hostUrl = type === 'glass' ? KJGLASS_SHOP_GLASSES : KJGLASS_SHOP_EXPANDABLES;
 
     let pageNumber = 1;
 
@@ -26,6 +26,7 @@ const get = async (type) => {
     });
 
     try {
+        let itemId = 1;
         const itemResult = [];
         while (pageNumber <= pageMaxNumber) {
             await page.goto(`${hostUrl}&p=${pageNumber}`);
@@ -46,7 +47,11 @@ const get = async (type) => {
                 const specUrl = `${KJGLASS_HOST}${item.slice(1, item.length)}`;
 
                 const res = await getSpec(specUrl, type);
-                itemResult.push(res);
+                itemResult.push({
+                    ...res,
+                    id: String(itemId)
+                });
+                itemId += 1;
             }
             pageNumber += 1;
         }
@@ -68,7 +73,7 @@ const getSpec = async (url, type) => {
         await dialog.dismiss();
     });
     try {
-        await page.goto(url || KJGLASS_SHOP_GLASS_SPECIFICATION);
+        await page.goto(url || KJGLASS_SPEC_TEST_URL);
         await page.waitFor(1000);
         const tableRes = await page.evaluate(() => {
             let isSpecification = false;
@@ -87,15 +92,27 @@ const getSpec = async (url, type) => {
             }, []);
 
             const elementsData = elements.reduce((acc, cur) => {
-                if (cur.innerHTML.indexOf('<') > -1 ||
-                    cur.innerHTML === '' ||
-                    cur.innerHTML === '&nbsp;') {
+                if (cur.innerHTML.indexOf('\n<br>') > -1) {
+                    const contentList = cur.innerHTML.split('\n<br>');
+                    contentList.forEach((content) => {
+                        acc.content.push(content);
+                    });
+                    return acc;
+                } else if (cur.innerHTML.indexOf('\n<br>\n<br>') > -1) {
+                    const contentList = cur.innerHTML.split('\n<br>\n<br>');
+                    contentList.forEach((content) => {
+                        acc.content.push(content);
+                    });
+                    return acc;
+                } else if (cur.innerHTML.indexOf('<') > -1 ||
+                cur.innerHTML === '' ||
+                cur.innerHTML === '&nbsp;') {
                     return acc;
                 } else if (cur.innerHTML === '상세규격' ||
-                           cur.innerHTML === '가격' ||
-                           cur.innerHTML === '수량' ||
-                           cur.innerHTML === '장바구니' ||
-                           cur.innerHTML === '회원열람') {
+                cur.innerHTML === '가격' ||
+                cur.innerHTML === '수량' ||
+                cur.innerHTML === '장바구니' ||
+                cur.innerHTML === '회원열람') {
                     return acc;
                 }
 
@@ -110,6 +127,8 @@ const getSpec = async (url, type) => {
                 }
                 return acc;
             }, {
+                type: '',
+                id: '0',
                 classify: newTitle[0],
                 title: newTitle[1],
                 content: [],
@@ -127,12 +146,16 @@ const getSpec = async (url, type) => {
             if (index % 2 === 0) {
                 specificationObj.id = String(idCount);
                 specificationObj.number = item;
-            } else {
-                specificationObj.content = item;
                 specificationObj.selected = false;
+                if (tableRes.specification[index + 1]) {
+                    specificationObj.content = tableRes.specification[index + 1];
+                } else {
+                    specificationObj.content = '';
+                }
                 specificationList.push(specificationObj);
-                specificationObj = {};
                 idCount += 1;
+            } else {
+                specificationObj = {};
             }
         });
         tableRes.type = type;
