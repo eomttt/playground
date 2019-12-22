@@ -3,8 +3,14 @@ const router = express.Router();
 
 const kjGlassController = require('../controllers/kjGlass.controller');
 
-router.get('/get', () => {
-    kjGlassController.get();
+router.get('/get', async (req, res) => {
+    try {
+        const result = await kjGlassController.get();
+        console.log('Get result', result);
+        res.send(result);
+    } catch (error) {
+        res.error('Error' + error);
+    }
 });
 
 router.get('/get-spec', () => {

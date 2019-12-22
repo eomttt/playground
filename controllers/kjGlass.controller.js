@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 
 const MAX_PAGE_NUMBER = 1;
+const KJGLASS_HOST = 'http://kjglass.co.kr';
 const KJGLASS_SHOP_GLASSES = 'http://kjglass.co.kr/shop.php?shopId=10001';
 const KJGLASS_SHOP_GLASS_SPECIFICATION = 'http://kjglass.co.kr/shop.php?shopId=1000100010001';
 
@@ -20,99 +21,37 @@ const get = async () => {
     try {
         await page.goto(KJGLASS_SHOP_GLASSES);
         await page.waitFor(1000);
+        const itemResult = [];
         while (pageNumber <= MAX_PAGE_NUMBER) {
-            const tableRes = await page.evaluate(async () => {
-                const history = [];
+            const items = await page.evaluate(() => {
                 const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > a'));
-                const aTagElements = elements.reduce((acc, cur) => {
+                const res = elements.reduce((acc, cur) => {
                     if (cur.innerHTML.indexOf('<img') > -1) {
                         return acc;
                     }
-                    acc.push(cur);
+                    acc.push(cur.getAttribute('href'));
                     return acc;
                 }, []);
-
-                // for (const aTagElement of aTagElements) {
-                await aTagElements[0].click();
-                await page.waitForNavigation();
-
-                let isSpecification = false;
-                const titleInfoSpec = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > a'));
-                const elementsSpec = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td'));
-
-                const newTitle = titleInfoSpec.reduce((acc, cur) => {
-                    if (cur.innerHTML.indexOf('<') > -1 ||
-                            cur.innerHTML === 'Home' ||
-                            cur.innerHTML === '글라스') {
-                        return acc;
-                    }
-                    acc.push(cur.innerHTML);
-                    return acc;
-                }, []);
-
-                const elementsData = elementsSpec.reduce((acc, cur) => {
-                    acc.test.push(cur.innerHTML);
-                    if (cur.innerHTML.indexOf('<') > -1 ||
-                            cur.innerHTML === '' ||
-                            cur.innerHTML === '&nbsp;') {
-                        return acc;
-                    } else if (cur.innerHTML === '상세규격' ||
-                                   cur.innerHTML === '가격' ||
-                                   cur.innerHTML === '수량' ||
-                                   cur.innerHTML === '장바구니' ||
-                                   cur.innerHTML === '회원열람') {
-                        return acc;
-                    }
-
-                    if (cur.innerHTML === 'Cat.no') {
-                        isSpecification = true;
-                        return acc;
-                    }
-                    if (isSpecification) {
-                        acc.specification.push(cur.innerHTML);
-                    } else {
-                        acc.content.push(cur.innerHTML);
-                    }
-                    return acc;
-                }, {
-                    type: 'glass',
-                    classify: newTitle[0],
-                    title: newTitle[1],
-                    content: [],
-                    specification: [],
-                    test: []
-                });
-                let idCount = 1;
-                let specificationObj = {};
-                const specificationList = [];
-
-                elementsData.specification.forEach((item, index) => {
-                    if (index % 2 === 0) {
-                        specificationObj.id = String(idCount);
-                        specificationObj.number = item;
-                    } else {
-                        specificationObj.content = item;
-                        specificationObj.selected = false;
-                        specificationList.push(specificationObj);
-                        specificationObj = {};
-                        idCount += 1;
-                    }
-                });
-                elementsData.specification = specificationList;
-                history.push(elementsData);
-
-                return history;
+                return res;
             });
-            console.log('TTT', tableRes);
+
+            for (const item of items) {
+                const specUrl = `${KJGLASS_HOST}${item.slice(1, item.length)}`;
+                console.log('tableRes', specUrl);
+
+                const res = await getSpec(specUrl);
+                itemResult.push(res);
+            }
             pageNumber += 1;
         }
-        return browser.close();
+        browser.close();
+        return itemResult;
     } catch (error) {
         console.log('Get kj glass shop crwaling error.', error);
     }
 };
 
-const getSpec = async () => {
+const getSpec = async (url) => {
     console.log('Start KJglass shop crwaling specification');
     const browser = await puppeteer.launch({
         headless: false
@@ -123,7 +62,7 @@ const getSpec = async () => {
         await dialog.dismiss();
     });
     try {
-        await page.goto(KJGLASS_SHOP_GLASS_SPECIFICATION);
+        await page.goto(url || KJGLASS_SHOP_GLASS_SPECIFICATION);
         await page.waitFor(1000);
         const tableRes = await page.evaluate(() => {
             let isSpecification = false;
@@ -191,8 +130,8 @@ const getSpec = async () => {
             }
         });
         tableRes.specification = specificationList;
-        console.log('TTT', tableRes);
-        return browser.close();
+        browser.close();
+        return tableRes;
     } catch (error) {
         console.log('Get kj glass shop crwaling error.', error);
     }
