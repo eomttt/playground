@@ -5,6 +5,9 @@ const KJGLASS_HOST = 'http://kjglass.co.kr';
 const KJGLASS_SHOP_GLASSES = 'http://kjglass.co.kr/shop.php?shopId=10001';
 const KJGLASS_SHOP_GLASS_SPECIFICATION = 'http://kjglass.co.kr/shop.php?shopId=1000100010001';
 
+const KJGLASS_SHOP_EXPANDABLES = 'http://kjglass.co.kr/shop.php?shopId=10002';
+
+
 const get = async () => {
     let pageNumber = 1;
 
