@@ -52,11 +52,8 @@ const get = async (type, pageNumber = 1) => {
         for (const item of items) {
             const specUrl = `${KJGLASS_HOST}${item.slice(1, item.length)}`;
 
-            const res = await getSpec(specUrl, type);
-            itemResult.push({
-                ...res,
-                id: String(itemId)
-            });
+            const res = await getSpec(specUrl, type, itemId);
+            itemResult.push(res);
             itemId += 1;
         }
         browser.close();
@@ -66,7 +63,7 @@ const get = async (type, pageNumber = 1) => {
     }
 };
 
-const getSpec = async (url, type) => {
+const getSpec = async (url, type, itemId) => {
     console.log('Start KJglass shop crwaling specification', type);
     const browser = await puppeteer.launch({
         headless: false
@@ -83,12 +80,14 @@ const getSpec = async (url, type) => {
             let isSpecification = false;
             const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td'));
             const titleInfo = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > a'));
+            const images = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > a > img'));
+            const image = images[0].src;
 
             const newTitle = titleInfo.reduce((acc, cur) => {
                 if (cur.innerHTML.indexOf('<') > -1 ||
-                    cur.innerHTML === 'Home' ||
-                    cur.innerHTML === '글라스' ||
-                    cur.innerHTML === '소모품') {
+                cur.innerHTML === 'Home' ||
+                cur.innerHTML === '글라스' ||
+                cur.innerHTML === '소모품') {
                     return acc;
                 }
                 acc.push(cur.innerHTML);
@@ -133,7 +132,7 @@ const getSpec = async (url, type) => {
             }, {
                 type: '',
                 id: '0',
-                image: '',
+                image: image,
                 classify: newTitle[0],
                 title: newTitle[1],
                 content: [],
@@ -165,6 +164,8 @@ const getSpec = async (url, type) => {
         });
         tableRes.type = type;
         tableRes.specification = specificationList;
+        tableRes.id = itemId;
+        tableRes.image = await uploadImage(tableRes.image, `${type}/${itemId}.jpg`);
         browser.close();
         return tableRes;
     } catch (error) {
@@ -172,10 +173,9 @@ const getSpec = async (url, type) => {
     }
 };
 
-const uploadImage = (imageUrl) => {
-    return new Promise((resolve, reject) => {
+const uploadImage = (imageUrl, fileName) => {
+    return new Promise((resolve) => {
         const bucket = admin.storage().bucket();
-        const fileName = 'test/test-image-3.jpg';
         const uuid = UUID();
         const file = bucket.file(fileName);
         fetch(imageUrl).then((res) => {
