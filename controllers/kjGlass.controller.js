@@ -1,14 +1,18 @@
 const puppeteer = require('puppeteer');
 
-const MAX_PAGE_NUMBER = 21;
 const KJGLASS_HOST = 'http://kjglass.co.kr';
-const KJGLASS_SHOP_GLASSES = 'http://kjglass.co.kr/shop.php?shopId=10001';
 const KJGLASS_SHOP_GLASS_SPECIFICATION = 'http://kjglass.co.kr/shop.php?shopId=1000100010001';
 
+const MAX_GLASS_PAGE_NUMBER = 21;
+const KJGLASS_SHOP_GLASSES = 'http://kjglass.co.kr/shop.php?shopId=10001';
+
+const MAX_EXPANDABLE_PAGE_NUMBER = 54;
 const KJGLASS_SHOP_EXPANDABLES = 'http://kjglass.co.kr/shop.php?shopId=10002';
 
+const get = async (type) => {
+    const pageMaxNumber = type === 'glass' ? MAX_GLASS_PAGE_NUMBER : 1;
+    const hostUrl = type === 'glass' ? KJGLASS_SHOP_GLASSES : KJGLASS_SHOP_EXPANDABLES; 
 
-const get = async () => {
     let pageNumber = 1;
 
     console.log('Start KJglass shop crwaling');
@@ -23,8 +27,8 @@ const get = async () => {
 
     try {
         const itemResult = [];
-        while (pageNumber <= MAX_PAGE_NUMBER) {
-            await page.goto(`${KJGLASS_SHOP_GLASSES}&p=${pageNumber}`);
+        while (pageNumber <= pageMaxNumber) {
+            await page.goto(`${hostUrl}&p=${pageNumber}`);
             await page.waitFor(1000);
             const items = await page.evaluate(() => {
                 const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > a'));
@@ -40,9 +44,8 @@ const get = async () => {
 
             for (const item of items) {
                 const specUrl = `${KJGLASS_HOST}${item.slice(1, item.length)}`;
-                console.log('tableRes', specUrl);
 
-                const res = await getSpec(specUrl);
+                const res = await getSpec(specUrl, type);
                 itemResult.push(res);
             }
             pageNumber += 1;
@@ -54,8 +57,8 @@ const get = async () => {
     }
 };
 
-const getSpec = async (url) => {
-    console.log('Start KJglass shop crwaling specification');
+const getSpec = async (url, type) => {
+    console.log('Start KJglass shop crwaling specification', type);
     const browser = await puppeteer.launch({
         headless: false
     });
@@ -75,7 +78,8 @@ const getSpec = async (url) => {
             const newTitle = titleInfo.reduce((acc, cur) => {
                 if (cur.innerHTML.indexOf('<') > -1 ||
                     cur.innerHTML === 'Home' ||
-                    cur.innerHTML === '글라스') {
+                    cur.innerHTML === '글라스' ||
+                    cur.innerHTML === '소모품') {
                     return acc;
                 }
                 acc.push(cur.innerHTML);
@@ -106,7 +110,6 @@ const getSpec = async (url) => {
                 }
                 return acc;
             }, {
-                type: 'glass',
                 classify: newTitle[0],
                 title: newTitle[1],
                 content: [],
@@ -132,6 +135,7 @@ const getSpec = async (url) => {
                 idCount += 1;
             }
         });
+        tableRes.type = type;
         tableRes.specification = specificationList;
         browser.close();
         return tableRes;
