@@ -129,6 +129,7 @@ const getSpec = async (url, type) => {
             }, {
                 type: '',
                 id: '0',
+                image: '',
                 classify: newTitle[0],
                 title: newTitle[1],
                 content: [],
