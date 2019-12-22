@@ -1,4 +1,16 @@
 const puppeteer = require('puppeteer');
+const admin = require('firebase-admin');
+const fetch = require('node-fetch');
+const UUID = require('uuid-v4');
+
+const serviceAccount = require('../keys/kjglass-60495-firebase-adminsdk-hleqt-8bf4fcb144.json');
+
+const BUCKET_NAME = 'kjglass-60495.appspot.com';
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: BUCKET_NAME
+});
 
 const KJGLASS_HOST = 'http://kjglass.co.kr';
 const KJGLASS_SPEC_TEST_URL = 'http://kjglass.co.kr/shop.php?shopId=1000200010157';
@@ -160,5 +172,28 @@ const getSpec = async (url, type) => {
     }
 };
 
+const uploadImage = (imageUrl) => {
+    return new Promise((resolve, reject) => {
+        const bucket = admin.storage().bucket();
+        const fileName = 'test/test-image-3.jpg';
+        const uuid = UUID();
+        const file = bucket.file(fileName);
+        fetch(imageUrl).then((res) => {
+            const contentType = res.headers.get('content-type');
+            const writeStream = file.createWriteStream({
+                metadata: {
+                    contentType,
+                    firebaseStorageDownloadTokens: uuid
+                }
+            });
+            res.body.pipe(writeStream).on('finish', (data) => {
+                const url = `https://firebasestorage.googleapis.com/v0/b/${BUCKET_NAME}/o/${encodeURIComponent(fileName)}?alt=media&token=${uuid}`;
+                resolve(url);
+            });
+        });
+    });
+};
+
 module.exports.get = get;
 module.exports.getSpec = getSpec;
+module.exports.uploadImage = uploadImage;

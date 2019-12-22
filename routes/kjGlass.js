@@ -21,4 +21,13 @@ router.get('/get-spec', async (req, res) => {
     }
 });
 
+router.get('/upload-image', async (req, res) => {
+    try {
+        const result = await kjGlassController.uploadImage(req.query.imageUrl);
+        res.send(result);
+    } catch (error) {
+        res.error('Erorr' + error);
+    }
+});
+
 module.exports = router;
