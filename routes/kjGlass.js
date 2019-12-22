@@ -5,7 +5,7 @@ const kjGlassController = require('../controllers/kjGlass.controller');
 
 router.get('/get', async (req, res) => {
     try {
-        const result = await kjGlassController.get(req.query.type);
+        const result = await kjGlassController.get(req.query.type, req.query.pageNumber);
         res.send(result);
     } catch (error) {
         res.error('Error' + error);

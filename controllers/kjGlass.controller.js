@@ -3,17 +3,12 @@ const puppeteer = require('puppeteer');
 const KJGLASS_HOST = 'http://kjglass.co.kr';
 const KJGLASS_SPEC_TEST_URL = 'http://kjglass.co.kr/shop.php?shopId=1000200010157';
 
-const MAX_GLASS_PAGE_NUMBER = 21;
 const KJGLASS_SHOP_GLASSES = 'http://kjglass.co.kr/shop.php?shopId=10001';
 
-const MAX_EXPANDABLE_PAGE_NUMBER = 54;
 const KJGLASS_SHOP_EXPANDABLES = 'http://kjglass.co.kr/shop.php?shopId=10002';
 
-const get = async (type) => {
-    const pageMaxNumber = type === 'glass' ? MAX_GLASS_PAGE_NUMBER : MAX_EXPANDABLE_PAGE_NUMBER;
+const get = async (type, pageNumber = 1) => {
     const hostUrl = type === 'glass' ? KJGLASS_SHOP_GLASSES : KJGLASS_SHOP_EXPANDABLES;
-
-    let pageNumber = 1;
 
     console.log('Start KJglass shop crwaling');
     const browser = await puppeteer.launch({
@@ -26,34 +21,31 @@ const get = async (type) => {
     });
 
     try {
-        let itemId = 1;
+        let itemId = 15 * (Number(pageNumber) - 1) + 1;
         const itemResult = [];
-        while (pageNumber <= pageMaxNumber) {
-            await page.goto(`${hostUrl}&p=${pageNumber}`);
-            await page.waitFor(1000);
-            const items = await page.evaluate(() => {
-                const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > a'));
-                const res = elements.reduce((acc, cur) => {
-                    if (cur.innerHTML.indexOf('<img') > -1) {
-                        return acc;
-                    }
-                    acc.push(cur.getAttribute('href'));
+        await page.goto(`${hostUrl}&p=${pageNumber}`);
+        await page.waitFor(1000);
+        const items = await page.evaluate(() => {
+            const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > a'));
+            const res = elements.reduce((acc, cur) => {
+                if (cur.innerHTML.indexOf('<img') > -1) {
                     return acc;
-                }, []);
-                return res;
+                }
+                acc.push(cur.getAttribute('href'));
+                return acc;
+            }, []);
+            return res;
+        });
+
+        for (const item of items) {
+            const specUrl = `${KJGLASS_HOST}${item.slice(1, item.length)}`;
+
+            const res = await getSpec(specUrl, type);
+            itemResult.push({
+                ...res,
+                id: String(itemId)
             });
-
-            for (const item of items) {
-                const specUrl = `${KJGLASS_HOST}${item.slice(1, item.length)}`;
-
-                const res = await getSpec(specUrl, type);
-                itemResult.push({
-                    ...res,
-                    id: String(itemId)
-                });
-                itemId += 1;
-            }
-            pageNumber += 1;
+            itemId += 1;
         }
         browser.close();
         return itemResult;
