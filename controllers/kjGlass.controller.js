@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer');
 
-const MAX_PAGE_NUMBER = 1;
+const MAX_PAGE_NUMBER = 21;
 const KJGLASS_HOST = 'http://kjglass.co.kr';
 const KJGLASS_SHOP_GLASSES = 'http://kjglass.co.kr/shop.php?shopId=10001';
 const KJGLASS_SHOP_GLASS_SPECIFICATION = 'http://kjglass.co.kr/shop.php?shopId=1000100010001';
@@ -19,10 +19,10 @@ const get = async () => {
     });
 
     try {
-        await page.goto(KJGLASS_SHOP_GLASSES);
-        await page.waitFor(1000);
         const itemResult = [];
         while (pageNumber <= MAX_PAGE_NUMBER) {
+            await page.goto(`${KJGLASS_SHOP_GLASSES}&p=${pageNumber}`);
+            await page.waitFor(1000);
             const items = await page.evaluate(() => {
                 const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > a'));
                 const res = elements.reduce((acc, cur) => {
