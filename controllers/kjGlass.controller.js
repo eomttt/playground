@@ -164,7 +164,7 @@ const getSpec = async (url, type, itemId) => {
         });
         tableRes.type = type;
         tableRes.specification = specificationList;
-        tableRes.id = itemId;
+        tableRes.id = String(itemId);
         tableRes.image = await uploadImage(tableRes.image, `${type}/${itemId}.jpg`);
         browser.close();
         return tableRes;
