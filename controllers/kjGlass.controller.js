@@ -9,15 +9,19 @@ const BUCKET_NAME = 'kjglass-60495.appspot.com';
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    storageBucket: BUCKET_NAME
+    storageBucket: BUCKET_NAME,
+    databaseURL: 'https://kjglass-60495.firebaseio.com',
+    databaseAuthVariableOverride: null
 });
 
 const KJGLASS_HOST = 'http://kjglass.co.kr';
 const KJGLASS_SPEC_TEST_URL = 'http://kjglass.co.kr/shop.php?shopId=1000200010157';
 
 const KJGLASS_SHOP_GLASSES = 'http://kjglass.co.kr/shop.php?shopId=10001';
+const KJGLASS_GLASS_MAX_PAGE_NUMBER = 21;
 
 const KJGLASS_SHOP_EXPANDABLES = 'http://kjglass.co.kr/shop.php?shopId=10002';
+const KJGLASS_EXPANDABLES_MAX_PAGE_NUMBER = 54;
 
 const get = async (type, pageNumber = 1) => {
     const hostUrl = type === 'glass' ? KJGLASS_SHOP_GLASSES : KJGLASS_SHOP_EXPANDABLES;
@@ -32,31 +36,36 @@ const get = async (type, pageNumber = 1) => {
         await dialog.dismiss();
     });
 
+    let pageNum = Number(pageNumber);
+    const itemResult = [];
     try {
-        let itemId = 15 * (Number(pageNumber) - 1) + 1;
-        const itemResult = [];
-        await page.goto(`${hostUrl}&p=${pageNumber}`);
-        await page.waitFor(1000);
-        const items = await page.evaluate(() => {
-            const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > a'));
-            const res = elements.reduce((acc, cur) => {
-                if (cur.innerHTML.indexOf('<img') > -1) {
+        while (pageNum <= KJGLASS_GLASS_MAX_PAGE_NUMBER) {
+            let itemId = 15 * (Number(pageNum) - 1) + 1;
+            await page.goto(`${hostUrl}&p=${pageNum}`);
+            await page.waitFor(1000);
+            const items = await page.evaluate(() => {
+                const elements = Array.from(document.querySelectorAll('table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td > a'));
+                const res = elements.reduce((acc, cur) => {
+                    if (cur.innerHTML.indexOf('<img') > -1) {
+                        return acc;
+                    }
+                    acc.push(cur.getAttribute('href'));
                     return acc;
-                }
-                acc.push(cur.getAttribute('href'));
-                return acc;
-            }, []);
-            return res;
-        });
+                }, []);
+                return res;
+            });
 
-        for (const item of items) {
-            const specUrl = `${KJGLASS_HOST}${item.slice(1, item.length)}`;
+            for (const item of items) {
+                const specUrl = `${KJGLASS_HOST}${item.slice(1, item.length)}`;
 
-            const res = await getSpec(specUrl, type, itemId);
-            itemResult.push(res);
-            itemId += 1;
+                const res = await getSpec(specUrl, type, itemId);
+                itemResult.push(res);
+                itemId += 1;
+            }
+            pageNum += 1;
         }
         browser.close();
+        updateData(itemResult, type);
         return itemResult;
     } catch (error) {
         console.log('Get kj glass shop crwaling error.', error);
@@ -194,6 +203,14 @@ const uploadImage = (imageUrl, fileName) => {
     });
 };
 
+const updateData = async (data, root) => {
+    const bucket = admin.database();
+    const ref = bucket.ref(`${root || 'test'}`);
+    ref.update(data);
+    return 'Success update data';
+};
+
 module.exports.get = get;
 module.exports.getSpec = getSpec;
 module.exports.uploadImage = uploadImage;
+module.exports.updateData = updateData;
