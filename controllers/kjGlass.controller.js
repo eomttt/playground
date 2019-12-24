@@ -210,7 +210,18 @@ const updateData = async (data, root) => {
     return 'Success update data';
 };
 
+const getData = (type) => {
+    return new Promise((resolve, reject) => {
+        const bucket = admin.database();
+        const ref = bucket.ref(`${type || 'test'}`);
+        ref.once('value', function (snapshot) {
+            resolve(snapshot.val());
+        });
+    });
+};
+
 module.exports.get = get;
 module.exports.getSpec = getSpec;
 module.exports.uploadImage = uploadImage;
 module.exports.updateData = updateData;
+module.exports.getData = getData;

@@ -40,4 +40,14 @@ router.post('/update', async (req, res) => {
     }
 });
 
+router.get('/get-data', async (req, res) => {
+    try {
+        const result = await kjGlassController.getData(req.query.type);
+        res.send(result);
+    } catch (error) {
+        console.log('error', error);
+        res.status(500).send(error);
+    }
+});
+
 module.exports = router;
