@@ -25,6 +25,7 @@ const KJGLASS_EXPANDABLES_MAX_PAGE_NUMBER = 54;
 
 const get = async (type, pageNumber = 1) => {
     const hostUrl = type === 'glass' ? KJGLASS_SHOP_GLASSES : KJGLASS_SHOP_EXPANDABLES;
+    const maxPageNumber = type === 'glass' ? KJGLASS_GLASS_MAX_PAGE_NUMBER : KJGLASS_EXPANDABLES_MAX_PAGE_NUMBER;
 
     console.log('Start KJglass shop crwaling');
     const browser = await puppeteer.launch({
@@ -39,7 +40,7 @@ const get = async (type, pageNumber = 1) => {
     let pageNum = Number(pageNumber);
     const itemResult = [];
     try {
-        while (pageNum <= KJGLASS_GLASS_MAX_PAGE_NUMBER) {
+        while (pageNum <= maxPageNumber) {
             let itemId = 15 * (Number(pageNum) - 1) + 1;
             await page.goto(`${hostUrl}&p=${pageNum}`);
             await page.waitFor(1000);
