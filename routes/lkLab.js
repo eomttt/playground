@@ -12,4 +12,13 @@ router.get('/get', async (req, res) => {
     }
 });
 
+router.get('/getSpec', async (req, res) => {
+    try {
+        const result = await lkLabController.getSpec();
+        res.send(result);
+    } catch (error) {
+        res.sstatus(500).send(error);
+    }
+});
+
 module.exports = router;
