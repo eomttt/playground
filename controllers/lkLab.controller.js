@@ -89,8 +89,24 @@ const getItemDetail = async (url) => {
     try {
         await page.goto(url || LKLAB_DETAIL_TEST);
         await page.waitFor(1000);
-        const image = await document.querySelector('#content > #prod_top > #prod_thumb > form > #thumb_l > img');
-        console.log(image.src);
+
+        const image = await page.evaluate(() => {
+            return document.querySelector('#content > #prod_top > #prod_thumb > form > #thumb_l > img').src;
+        });
+        console.log('image: ', image);
+        const englishTitle = await page.evaluate(() => {
+            return document.querySelector('#content > #prod_top > #prod_info > #prod_info_01 > ul > .name_eng').innerText;
+        });
+        console.log('englishTitle: ', englishTitle);
+        const korTitle = await page.evaluate(() => {
+            return document.querySelector('#content > #prod_top > #prod_info > #prod_info_01 > ul > .name_kor').innerText;
+        });
+        console.log('korTitle: ', korTitle);
+        const specifications = await page.evaluate(() => {
+            const items = document.querySelector('#content > #prod_top > #prod_info > #prod_info_02 > .keyword').innerText;
+            return items.split('\n');
+        });
+        console.log('specifications', specifications);
     } catch (error) {
         console.log('Get lk lab item deatil error.', error);
         throw new Error(error);
@@ -99,3 +115,4 @@ const getItemDetail = async (url) => {
 
 module.exports.get = get;
 module.exports.getItems = getItems;
+module.exports.getItemDetail = getItemDetail;
