@@ -127,7 +127,7 @@ const getItemDetail = async (url) => {
                 itemIndex += 1;
                 acc[itemIndex] = [];
             }
-            // acc[itemIndex].push(cur);
+            acc[itemIndex].push(cur);
         }, []);
         console.log('tableItems', tableItems);
     } catch (error) {
