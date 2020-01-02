@@ -107,6 +107,29 @@ const getItemDetail = async (url) => {
             return items.split('\n');
         });
         console.log('specifications', specifications);
+        const tableMenu = await page.evaluate(() => {
+            const menus = Array.from(document.querySelectorAll('#product_tab_02 > center > ul > li > table > thead > tr > th'));
+            return menus.map((menu) => {
+                return menu.innerText;
+            });
+        });
+        console.log('tableMenu', tableMenu);
+        const tableMenuItems = await page.evaluate(() => {
+            const menuItems = Array.from(document.querySelectorAll('#product_tab_02 > center > ul > li > table > tbody > tr > td'));
+            return menuItems.map((menuItem) => {
+                return menuItem.innerText;
+            });
+        });
+        console.log('tableMenuItems', tableMenuItems);
+        let itemIndex = -1;
+        const tableItems = tableMenuItems.reduce((acc, cur, index) => {
+            if (index % 4 === 0) {
+                itemIndex += 1;
+                acc[itemIndex] = [];
+            }
+            // acc[itemIndex].push(cur);
+        }, []);
+        console.log('tableItems', tableItems);
     } catch (error) {
         console.log('Get lk lab item deatil error.', error);
         throw new Error(error);
