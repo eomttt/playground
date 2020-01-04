@@ -102,11 +102,11 @@ const getItemDetail = async (url) => {
             return document.querySelector('#content > #prod_top > #prod_info > #prod_info_01 > ul > .name_kor').innerText;
         });
         console.log('korTitle: ', korTitle);
-        const specifications = await page.evaluate(() => {
+        const contents = await page.evaluate(() => {
             const items = document.querySelector('#content > #prod_top > #prod_info > #prod_info_02 > .keyword').innerText;
             return items.split('\n');
         });
-        console.log('specifications', specifications);
+        console.log('contents', contents);
         const tableMenu = await page.evaluate(() => {
             const menus = Array.from(document.querySelectorAll('#product_tab_02 > center > ul > li > table > thead > tr > th'));
             return menus.map((menu) => {
@@ -115,21 +115,41 @@ const getItemDetail = async (url) => {
         });
         console.log('tableMenu', tableMenu);
         const tableMenuItems = await page.evaluate(() => {
+            let itemIndex = -1;
             const menuItems = Array.from(document.querySelectorAll('#product_tab_02 > center > ul > li > table > tbody > tr > td'));
-            return menuItems.map((menuItem) => {
+            const menuItemTexts = menuItems.map((menuItem) => {
                 return menuItem.innerText;
             });
+            return menuItemTexts.reduce((acc, cur, index) => {
+                if (index % 4 === 0) {
+                    itemIndex += 1;
+                    acc[itemIndex] = [];
+                }
+                acc[itemIndex].push(cur);
+                return acc;
+            }, []);
         });
         console.log('tableMenuItems', tableMenuItems);
-        let itemIndex = -1;
-        const tableItems = tableMenuItems.reduce((acc, cur, index) => {
-            if (index % 4 === 0) {
-                itemIndex += 1;
-                acc[itemIndex] = [];
-            }
-            acc[itemIndex].push(cur);
-        }, []);
-        console.log('tableItems', tableItems);
+        const frame = await page.frames().find(frame => frame.name() === 'product_order');
+        await page.waitFor(1000);
+        const specifications = await frame.evaluate(() => {
+            const items = Array.from(document.querySelectorAll('body > center > #con > form > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td'));
+            return items.map((item) => {
+                return item.innerText.trim();
+            }).filter((item) => {
+                if (item === 'Unit' || item === 'Price(VAT별도)' || item === '재고' || item === '예정재고' || item === '0') {
+                    return false;
+                } else if (item.indexOf('/EA') > -1 || item.indexOf('소비자가') > -1 ||
+                           item.indexOf('Day') > -1 || item.indexOf('본사') > -1 || item.indexOf('공장') > -1) {
+                    return false;
+                } else if (item === '') {
+                    return false;
+                }
+                return true;
+            });
+        });
+        console.log('specificationMenu', specifications);
+        browser.close();
     } catch (error) {
         console.log('Get lk lab item deatil error.', error);
         throw new Error(error);
