@@ -77,7 +77,7 @@ const getItems = async (url) => {
     }
 };
 
-const getItemDetail = async (url) => {
+const getItemDetail = async (url, itemId) => {
     const browser = await puppeteer.launch({
         headless: false
     });
@@ -93,28 +93,25 @@ const getItemDetail = async (url) => {
         const image = await page.evaluate(() => {
             return document.querySelector('#content > #prod_top > #prod_thumb > form > #thumb_l > img').src;
         });
-        console.log('image: ', image);
         const englishTitle = await page.evaluate(() => {
             return document.querySelector('#content > #prod_top > #prod_info > #prod_info_01 > ul > .name_eng').innerText;
         });
-        console.log('englishTitle: ', englishTitle);
         const korTitle = await page.evaluate(() => {
             return document.querySelector('#content > #prod_top > #prod_info > #prod_info_01 > ul > .name_kor').innerText;
         });
-        console.log('korTitle: ', korTitle);
         const contents = await page.evaluate(() => {
             const items = document.querySelector('#content > #prod_top > #prod_info > #prod_info_02 > .keyword').innerText;
-            return items.split('\n');
+            return items.split('\n').filter((item) => {
+                return !!item;
+            });
         });
-        console.log('contents', contents);
         const tableMenu = await page.evaluate(() => {
             const menus = Array.from(document.querySelectorAll('#product_tab_02 > center > ul > li > table > thead > tr > th'));
             return menus.map((menu) => {
                 return menu.innerText;
             });
         });
-        console.log('tableMenu', tableMenu);
-        const tableMenuItems = await page.evaluate(() => {
+        const tableItems = await page.evaluate(() => {
             let itemIndex = -1;
             const menuItems = Array.from(document.querySelectorAll('#product_tab_02 > center > ul > li > table > tbody > tr > td'));
             const menuItemTexts = menuItems.map((menuItem) => {
@@ -129,7 +126,6 @@ const getItemDetail = async (url) => {
                 return acc;
             }, []);
         });
-        console.log('tableMenuItems', tableMenuItems);
         const frame = await page.frames().find(frame => frame.name() === 'product_order');
         await page.waitFor(1000);
         const specifications = await frame.evaluate(() => {
@@ -137,7 +133,9 @@ const getItemDetail = async (url) => {
             return items.map((item) => {
                 return item.innerText.trim();
             }).filter((item) => {
-                if (item === 'Unit' || item === 'Price(VAT별도)' || item === '재고' || item === '예정재고' || item === '0') {
+                if (item === 'Cat. No' || item === 'Model' || item === 'Description') {
+                    return false;
+                } else if (item === 'Unit' || item === 'Price(VAT별도)' || item === '재고' || item === '예정재고' || item === '0') {
                     return false;
                 } else if (item.indexOf('/EA') > -1 || item.indexOf('소비자가') > -1 ||
                            item.indexOf('Day') > -1 || item.indexOf('본사') > -1 || item.indexOf('공장') > -1) {
@@ -148,8 +146,41 @@ const getItemDetail = async (url) => {
                 return true;
             });
         });
-        console.log('specificationMenu', specifications);
+        let specificationId = 1;
+        let specificationObject = {};
+        const specificationObjects = [];
+
+        specifications.forEach((item, index) => {
+            if (index % 3 === 0) {
+                specificationObject = {
+                    id: specificationId,
+                    number: item
+                };
+            } else if (index % 3 === 1) {
+                specificationObject.model = item;
+            } else {
+                specificationObject.content = item;
+                specificationObject.isSelected = false;
+                specificationObjects.push(specificationObject);
+                specificationId += 1;
+            }
+        });
+
+        const res = {
+            classify: 'lkLab',
+            content: contents,
+            id: itemId || 1,
+            image: image,
+            specification: specificationObjects,
+            tableMenu: tableMenu,
+            tableItems: tableItems,
+            title: {
+                ko: korTitle,
+                en: englishTitle
+            }
+        };
         browser.close();
+        return res;
     } catch (error) {
         console.log('Get lk lab item deatil error.', error);
         throw new Error(error);
