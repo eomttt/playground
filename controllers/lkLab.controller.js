@@ -114,26 +114,12 @@ const getItemDetail = async (url, type = 'test', itemId) => {
                 return !!item;
             });
         });
-        const tableMenu = await page.evaluate(() => {
-            const menus = Array.from(document.querySelectorAll('#product_tab_02 > center > ul > li > table > thead > tr > th'));
-            return menus.map((menu) => {
-                return menu.innerText;
-            });
-        });
         const tableItems = await page.evaluate(() => {
-            let itemIndex = -1;
-            const menuItems = Array.from(document.querySelectorAll('#product_tab_02 > center > ul > li > table > tbody > tr > td'));
+            const menuItems = Array.from(document.querySelectorAll('#product_tab_02 > center > ul > li'));
             const menuItemTexts = menuItems.map((menuItem) => {
-                return menuItem.innerText;
+                return menuItem.innerHTML.replace(/(\t\n|\n|\t|&nbsp;|\s)/gm, '');
             });
-            return menuItemTexts.reduce((acc, cur, index) => {
-                if (index % 4 === 0) {
-                    itemIndex += 1;
-                    acc[itemIndex] = [];
-                }
-                acc[itemIndex].push(cur);
-                return acc;
-            }, []);
+            return menuItemTexts;
         });
         const frame = await page.frames().find(frame => frame.name() === 'product_order');
         await page.waitFor(1000);
@@ -183,7 +169,6 @@ const getItemDetail = async (url, type = 'test', itemId) => {
             id: itemId || 1,
             image: imageUrl,
             specification: specificationObjects,
-            tableMenu: tableMenu,
             tableItems: tableItems,
             title: {
                 ko: korTitle,
