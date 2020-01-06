@@ -1,8 +1,8 @@
 const puppeteer = require('puppeteer');
 
-const updateData = require('./kjGlass.controller');
+const kjGlassController = require('./kjGlass.controller');
 
-const LKLAB_HOST = 'http://lklab.com/';
+const LKLAB_HOST = 'http://lklab.com';
 const LKLAB_SPEC_TEST = 'http://lklab.com/product/product_list.asp?t_no=780';
 const LKLAB_DETAIL_TEST = 'http://lklab.com/product/product_info.asp?g_no=5444&t_no=780';
 const TYPE = 'lkLab';
@@ -35,7 +35,7 @@ const get = async () => {
             });
 
             for (const item of items) {
-                console.log('item', item);
+                await getItems(`${LKLAB_HOST}${item}`);
             }
             pageNum += 1;
         }
@@ -68,16 +68,25 @@ const getItems = async (url) => {
             }, []);
         });
 
+        let itemId = 1;
+        const itemDetailList = [];
+
         for (const item of items) {
-            console.log('item', item, items.length);
+            console.log('item', item);
+            const itemDetail = await getItemDetail(`${LKLAB_HOST}/product${item.slice(1)}`, TYPE, itemId);
+            itemDetailList.push(itemDetail);
+            itemId += 1;
+            console.log('itemDetail', itemDetail);
         }
+        browser.close();
+        return itemDetailList;
     } catch (error) {
         console.log('get lk lab spec error.', error);
         throw new Error(error);
     }
 };
 
-const getItemDetail = async (url, itemId) => {
+const getItemDetail = async (url, type = 'test', itemId) => {
     const browser = await puppeteer.launch({
         headless: false
     });
@@ -166,11 +175,13 @@ const getItemDetail = async (url, itemId) => {
             }
         });
 
+        const imageUrl = await kjGlassController.uploadImage(image, `${type}/${itemId || 1}.jpg`);
+
         const res = {
-            classify: 'lkLab',
+            classify: TYPE,
             content: contents,
             id: itemId || 1,
-            image: image,
+            image: imageUrl,
             specification: specificationObjects,
             tableMenu: tableMenu,
             tableItems: tableItems,
