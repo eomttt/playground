@@ -39,8 +39,8 @@ const get = async () => {
             }
             pageNum += 1;
         }
-        // browser.close();
-        // updateData(itemResult, TYPE);
+        browser.close();
+        kjGlassController.updateData(itemResult, TYPE);
         return itemResult;
     } catch (error) {
         console.log('Get lk lab glass shop crwaling error.', error);
