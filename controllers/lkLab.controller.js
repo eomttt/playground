@@ -5,7 +5,7 @@ const kjGlassController = require('./kjGlass.controller');
 const LKLAB_HOST = 'http://lklab.com';
 const LKLAB_SPEC_TEST = 'http://lklab.com/product/product_list.asp?t_no=780';
 const LKLAB_DETAIL_TEST = 'http://lklab.com/product/product_info.asp?g_no=5444&t_no=780';
-const TYPE = 'lkLab';
+const TYPE = 'expendables';
 const MAX_ITEM_NUMBER = 1;
 
 const get = async () => {
@@ -20,7 +20,7 @@ const get = async () => {
     });
 
     let pageNum = 1;
-    const itemResult = [];
+    let itemResult = [];
     try {
         while (pageNum <= MAX_ITEM_NUMBER) {
             await page.goto(LKLAB_HOST);
@@ -29,15 +29,20 @@ const get = async () => {
             const items = await page.evaluate(() => {
                 const elements = Array.from(document.querySelectorAll('#header > #category_all > #category_list > ul > .list_02 > a'));
                 return elements.reduce((acc, cur) => {
-                    acc.push(cur.getAttribute('href'));
+                    acc.push({
+                        classify: cur.innerText,
+                        link: cur.getAttribute('href')
+                    });
                     return acc;
                 }, []);
             });
 
-            for (const item of items) {
-                await getItems(`${LKLAB_HOST}${item}`);
-            }
+            // for (const item of items) {
+                const res = await getItems(`${LKLAB_HOST}${items[1].link}`, items[1].classify);
+                itemResult = [...itemResult, ...res];
+            // }
             pageNum += 1;
+            console.log('res', res);
         }
         browser.close();
         kjGlassController.updateData(itemResult, TYPE);
@@ -48,7 +53,7 @@ const get = async () => {
     }
 };
 
-const getItems = async (url) => {
+const getItems = async (url, classify) => {
     const browser = await puppeteer.launch({
         headless: false
     });
@@ -72,11 +77,9 @@ const getItems = async (url) => {
         const itemDetailList = [];
 
         for (const item of items) {
-            console.log('item', item);
-            const itemDetail = await getItemDetail(`${LKLAB_HOST}/product${item.slice(1)}`, TYPE, itemId);
+            const itemDetail = await getItemDetail(`${LKLAB_HOST}/product${item.slice(1)}`, classify, itemId);
             itemDetailList.push(itemDetail);
             itemId += 1;
-            console.log('itemDetail', itemDetail);
         }
         browser.close();
         return itemDetailList;
@@ -86,7 +89,7 @@ const getItems = async (url) => {
     }
 };
 
-const getItemDetail = async (url, type = 'test', itemId) => {
+const getItemDetail = async (url, classify = 'test', itemId) => {
     const browser = await puppeteer.launch({
         headless: false
     });
@@ -132,7 +135,7 @@ const getItemDetail = async (url, type = 'test', itemId) => {
                     return false;
                 } else if (item === 'Unit' || item === 'Price(VAT별도)' || item === '재고' || item === '예정재고' || item === '0') {
                     return false;
-                } else if (item.indexOf('/EA') > -1 || item.indexOf('소비자가') > -1 ||
+                } else if (item.indexOf('/EA') > -1 || item.indexOf('소비자가') > -1 || item.indexOf('/PK') > -1 ||
                            item.indexOf('Day') > -1 || item.indexOf('본사') > -1 || item.indexOf('공장') > -1) {
                     return false;
                 } else if (item === '') {
@@ -148,7 +151,7 @@ const getItemDetail = async (url, type = 'test', itemId) => {
         specifications.forEach((item, index) => {
             if (index % 3 === 0) {
                 specificationObject = {
-                    id: specificationId,
+                    id: String(specificationId),
                     number: item
                 };
             } else if (index % 3 === 1) {
@@ -161,19 +164,17 @@ const getItemDetail = async (url, type = 'test', itemId) => {
             }
         });
 
-        const imageUrl = await kjGlassController.uploadImage(image, `${type}/${itemId || 1}.jpg`);
+        const imageUrl = await kjGlassController.uploadImage(image, `${TYPE}/${itemId || 1}.jpg`);
 
         const res = {
-            classify: TYPE,
+            classify: classify,
             content: contents,
-            id: itemId || 1,
+            id: String(itemId || 1),
             image: imageUrl,
             specification: specificationObjects,
             tableItems: tableItems,
-            title: {
-                ko: korTitle,
-                en: englishTitle
-            }
+            title: `${korTitle} (${englishTitle})`,
+            type: TYPE
         };
         browser.close();
         return res;
