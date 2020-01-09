@@ -173,7 +173,7 @@ const getItemDetail = async (url, classify = 'test', itemId) => {
             image: imageUrl,
             specification: specificationObjects,
             tableItems: tableItems,
-            title: `${korTitle} (${englishTitle})`,
+            title: `${englishTitle} (${korTitle})`,
             type: TYPE
         };
         browser.close();
