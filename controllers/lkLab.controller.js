@@ -120,7 +120,7 @@ const getItemDetail = async (url, classify = 'test', itemId) => {
         const tableItems = await page.evaluate(() => {
             const menuItems = Array.from(document.querySelectorAll('#product_tab_02 > center > ul > li'));
             const menuItemTexts = menuItems.map((menuItem) => {
-                return menuItem.innerHTML.replace(/(\t\n|\n|\t|&nbsp;|\s)/gm, '');
+                return menuItem.innerHTML.replace(/(\t\n|\n|\t|&nbsp;)/gm, '');
             });
             return menuItemTexts;
         });
