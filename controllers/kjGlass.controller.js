@@ -211,6 +211,15 @@ const updateData = async (data, root) => {
     return 'Success update data';
 };
 
+const pushData = async (data, root) => {
+    const refType = `${root || 'test'}`;
+    const bucket = admin.database();
+    const ref = bucket.ref(refType);
+    const existData = await getData(refType);
+    ref.update([...existData, ...data]);
+    return 'Success push data';
+};
+
 const getData = (type) => {
     return new Promise((resolve, reject) => {
         const bucket = admin.database();
@@ -225,4 +234,5 @@ module.exports.get = get;
 module.exports.getSpec = getSpec;
 module.exports.uploadImage = uploadImage;
 module.exports.updateData = updateData;
+module.exports.pushData = pushData;
 module.exports.getData = getData;

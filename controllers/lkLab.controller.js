@@ -20,7 +20,6 @@ const get = async () => {
     });
 
     let pageNum = 1;
-    let itemResult = [];
     try {
         while (pageNum <= MAX_ITEM_NUMBER) {
             await page.goto(LKLAB_HOST);
@@ -37,16 +36,15 @@ const get = async () => {
                 }, []);
             });
 
-            // for (const item of items) {
-                const res = await getItems(`${LKLAB_HOST}${items[1].link}`, items[1].classify);
-                itemResult = [...itemResult, ...res];
-            // }
+            for (const item of items) {
+                const res = await getItems(`${LKLAB_HOST}${item.link}`, item.classify);
+                await kjGlassController.updateData(res, TYPE);
+            }
             pageNum += 1;
-            console.log('res', res);
         }
         browser.close();
-        kjGlassController.updateData(itemResult, TYPE);
-        return itemResult;
+
+        return 'Succes to update in firebase';
     } catch (error) {
         console.log('Get lk lab glass shop crwaling error.', error);
         throw new Error(error);

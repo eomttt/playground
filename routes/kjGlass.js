@@ -40,6 +40,16 @@ router.post('/update', async (req, res) => {
     }
 });
 
+router.post('/push', async (req, res) => {
+    try {
+        const result = await kjGlassController.pushData(req.body.test);
+        res.send(result);
+    } catch (error) {
+        console.log('Error', error);
+        res.status(500).send(error);
+    }
+});
+
 router.get('/get-data', async (req, res) => {
     try {
         const result = await kjGlassController.getData(req.query.type);
