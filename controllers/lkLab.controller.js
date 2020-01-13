@@ -6,6 +6,7 @@ const LKLAB_HOST = 'http://lklab.com';
 const LKLAB_SPEC_TEST = 'http://lklab.com/product/product_list.asp?t_no=780';
 const LKLAB_DETAIL_TEST = 'http://lklab.com/product/product_info.asp?g_no=5444&t_no=780';
 const TYPE = 'expendables';
+const LKLAB_OFFSET = 'lkLabOffset';
 const MAX_ITEM_NUMBER = 1;
 
 const get = async () => {
@@ -36,9 +37,10 @@ const get = async () => {
                 }, []);
             });
 
-            for (const item of items) {
-                const res = await getItems(`${LKLAB_HOST}${item.link}`, item.classify);
+            for (let i = 1, len = items.length; i < len; i++) {
+                const res = await getItems(`${LKLAB_HOST}${items[i].link}`, items[i].classify);
                 await kjGlassController.updateData(res, TYPE);
+                await kjGlassController.updateData({ number: i }, LKLAB_OFFSET);
             }
             pageNum += 1;
         }
@@ -71,8 +73,10 @@ const getItems = async (url, classify) => {
             }, []);
         });
 
-        let itemId = 1;
-        const itemDetailList = [];
+        const existArray = await kjGlassController.getData(TYPE);
+
+        let itemId = existArray ? existArray.length + 1 : 1;
+        const itemDetailList = existArray ? [...existArray] : [];
 
         for (const item of items) {
             const itemDetail = await getItemDetail(`${LKLAB_HOST}/product${item.slice(1)}`, classify, itemId);

@@ -216,7 +216,10 @@ const pushData = async (data, root) => {
     const bucket = admin.database();
     const ref = bucket.ref(refType);
     const existData = await getData(refType);
-    ref.update([...existData, ...data]);
+
+    const updateData = existData ? [...existData, ...data] : [...data];
+
+    ref.update(updateData);
     return 'Success push data';
 };
 
