@@ -4,7 +4,7 @@ const kjGlassController = require('./kjGlass.controller');
 
 const LKLAB_HOST = 'http://lklab.com';
 const LKLAB_SPEC_TEST = 'http://lklab.com/product/product_list.asp?t_no=780';
-const LKLAB_DETAIL_TEST = 'http://lklab.com/product/product_info.asp?g_no=5444&t_no=780';
+const LKLAB_DETAIL_TEST = 'http://lklab.com/product/product_info.asp?g_no=5462&t_no=782';
 const TYPE = 'expendables';
 const LKLAB_OFFSET = 'lkLabOffset';
 const MAX_ITEM_NUMBER = 1;
@@ -129,23 +129,17 @@ const getItemDetail = async (url, classify = 'test', itemId) => {
         const frame = await page.frames().find(frame => frame.name() === 'product_order');
         await page.waitFor(1000);
         const specifications = await frame.evaluate(() => {
-            const items = Array.from(document.querySelectorAll('body > center > #con > form > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td'));
+            const items = Array.from(document.querySelectorAll('body > center > #con > form > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td:nth-child(2), td:nth-child(4), td:nth-child(6)'));
             return items.map((item) => {
                 return item.innerText.trim();
             }).filter((item) => {
                 if (item === 'Cat. No' || item === 'Model' || item === 'Description') {
                     return false;
-                } else if (item === 'Unit' || item === 'Price(VAT별도)' || item === '재고' || item === '예정재고' || item === '0') {
-                    return false;
-                } else if (item.indexOf('/EA') > -1 || item.indexOf('소비자가') > -1 || item.indexOf('/PK') > -1 ||
-                           item.indexOf('Day') > -1 || item.indexOf('본사') > -1 || item.indexOf('공장') > -1) {
-                    return false;
-                } else if (item === '') {
-                    return false;
                 }
-                return true;
+                return !!item;
             });
         });
+
         let specificationId = 1;
         let specificationObject = {};
         const specificationObjects = [];
