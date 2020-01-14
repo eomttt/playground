@@ -4,7 +4,7 @@ const kjGlassController = require('./kjGlass.controller');
 
 const LKLAB_HOST = 'http://lklab.com';
 const LKLAB_SPEC_TEST = 'http://lklab.com/product/product_list.asp?t_no=780';
-const LKLAB_DETAIL_TEST = 'http://lklab.com/product/product_info.asp?g_no=5462&t_no=782';
+const LKLAB_DETAIL_TEST = 'http://lklab.com/product/product_info.asp?g_no=8024&t_no=780';
 const TYPE = 'expendables';
 const LKLAB_OFFSET = 'lkLabOffset';
 const MAX_ITEM_NUMBER = 1;
