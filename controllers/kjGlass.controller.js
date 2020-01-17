@@ -2,10 +2,16 @@ const puppeteer = require('puppeteer');
 const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 const UUID = require('uuid-v4');
+const AWS = require('aws-sdk');
+const fs = require('fs');
+const sharp = require('sharp');
 
 const serviceAccount = require('../keys/kjglass-60495-firebase-adminsdk-hleqt-8bf4fcb144.json');
+const awsConfig = require('../aws.config');
 
 const BUCKET_NAME = 'kjglass-60495.appspot.com';
+
+const s3 = new AWS.S3(awsConfig);
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -175,7 +181,7 @@ const getSpec = async (url, type, itemId) => {
         tableRes.type = type;
         tableRes.specification = specificationList;
         tableRes.id = String(itemId);
-        tableRes.image = await uploadImage(tableRes.image, `${type}/${itemId}.jpg`);
+        tableRes.image = await uploadImageToS3(tableRes.image);
         browser.close();
         return tableRes;
     } catch (error) {
@@ -201,6 +207,30 @@ const uploadImage = (imageUrl, fileName) => {
                 resolve(url);
             });
         });
+    });
+};
+
+const uploadImageToS3 = (imageUrl) => {
+    console.log('imageUrl', imageUrl);
+    return new Promise((resolve, reject) => {
+        fetch(imageUrl).then((res) => {
+            res.body.pipe(fs.createWriteStream('test.jpg')).on('finish', (data) => {
+                const param = {
+                    Bucket: 'kjglass-images',
+                    Key: 'test',
+                    ACL: 'public-read',
+                    Body: data,
+                    ContentType: 'image/jpg'
+                };
+                s3.upload(param, (error, data) => {
+                    if (error) {
+                        console.log('Upload s3 error', error);
+                    }
+                    console.log(data);
+                });
+            })
+        });
+
     });
 };
 
@@ -236,6 +266,7 @@ const getData = (type) => {
 module.exports.get = get;
 module.exports.getSpec = getSpec;
 module.exports.uploadImage = uploadImage;
+module.exports.uploadImageToS3 = uploadImageToS3;
 module.exports.updateData = updateData;
 module.exports.pushData = pushData;
 module.exports.getData = getData;
