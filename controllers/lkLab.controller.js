@@ -37,8 +37,10 @@ const get = async () => {
                 }, []);
             });
 
+            console.log('Whole len', items.length);
+
             // i는 firebase lkLabOffset number + 1 부터 시작해야함
-            for (let i = 18, len = items.length; i < len; i++) {
+            for (let i = 106, len = items.length; i < len; i++) {
                 const res = await getItems(`${LKLAB_HOST}${items[i].link}`, items[i].classify);
                 await kjGlassController.updateData(res, TYPE);
                 await kjGlassController.updateData({ number: i }, LKLAB_OFFSET);
