@@ -207,7 +207,7 @@ const uploadImage = (imageUrl, fileName) => {
 const updateData = async (data, root) => {
     const bucket = admin.database();
     const ref = bucket.ref(`${root || 'test'}`);
-    ref.update(data);
+    ref.set(data);
     return 'Success update data';
 };
 
