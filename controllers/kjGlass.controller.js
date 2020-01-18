@@ -4,14 +4,13 @@ const fetch = require('node-fetch');
 const UUID = require('uuid-v4');
 const AWS = require('aws-sdk');
 const fs = require('fs');
-const sharp = require('sharp');
 
 const serviceAccount = require('../keys/kjglass-60495-firebase-adminsdk-hleqt-8bf4fcb144.json');
-const awsConfig = require('../aws.config');
 
 const BUCKET_NAME = 'kjglass-60495.appspot.com';
 
-const s3 = new AWS.S3(awsConfig);
+AWS.config.loadFromPath('aws.config.json');
+const s3 = new AWS.S3();
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -181,7 +180,7 @@ const getSpec = async (url, type, itemId) => {
         tableRes.type = type;
         tableRes.specification = specificationList;
         tableRes.id = String(itemId);
-        tableRes.image = await uploadImageToS3(tableRes.image);
+        tableRes.image = await uploadImageToS3(tableRes.image, `${type}/${itemId}.jpg`);
         browser.close();
         return tableRes;
     } catch (error) {
@@ -210,16 +209,17 @@ const uploadImage = (imageUrl, fileName) => {
     });
 };
 
-const uploadImageToS3 = (imageUrl) => {
+const uploadImageToS3 = (imageUrl, fileName) => {
     console.log('imageUrl', imageUrl);
     return new Promise((resolve, reject) => {
         fetch(imageUrl).then((res) => {
-            res.body.pipe(fs.createWriteStream('test.jpg')).on('finish', (data) => {
+            res.body.pipe(fs.createWriteStream('temp.jpg')).on('finish', (data) => {
+                console.log('Finish');
                 const param = {
                     Bucket: 'kjglass-images',
-                    Key: 'test',
+                    Key: fileName,
                     ACL: 'public-read',
-                    Body: data,
+                    Body: fs.createReadStream('temp.jpg'),
                     ContentType: 'image/jpg'
                 };
                 s3.upload(param, (error, data) => {
@@ -228,7 +228,7 @@ const uploadImageToS3 = (imageUrl) => {
                     }
                     console.log(data);
                 });
-            })
+            });
         });
 
     });
