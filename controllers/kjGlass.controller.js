@@ -210,11 +210,9 @@ const uploadImage = (imageUrl, fileName) => {
 };
 
 const uploadImageToS3 = (imageUrl, fileName) => {
-    console.log('imageUrl', imageUrl);
     return new Promise((resolve, reject) => {
         fetch(imageUrl).then((res) => {
             res.body.pipe(fs.createWriteStream('temp.jpg')).on('finish', (data) => {
-                console.log('Finish');
                 const param = {
                     Bucket: 'kjglass-images',
                     Key: fileName,
@@ -226,11 +224,10 @@ const uploadImageToS3 = (imageUrl, fileName) => {
                     if (error) {
                         console.log('Upload s3 error', error);
                     }
-                    console.log(data);
+                    resolve(data.Location);
                 });
             });
         });
-
     });
 };
 
