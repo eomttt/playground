@@ -4,7 +4,7 @@ const kjGlassController = require('./kjGlass.controller');
 
 const LKLAB_HOST = 'http://lklab.com';
 const LKLAB_SPEC_TEST = 'http://lklab.com/product/product_list.asp?t_no=780';
-const LKLAB_DETAIL_TEST = 'http://lklab.com/product/product_info.asp?g_no=8024&t_no=780';
+const LKLAB_DETAIL_TEST = 'http://lklab.com/product/product_info.asp?g_no=12419&t_no=862';
 const TYPE = 'expendables';
 const LKLAB_OFFSET = 'lkLabOffset';
 const MAX_ITEM_NUMBER = 1;
@@ -40,7 +40,7 @@ const get = async () => {
             console.log('Whole len', items.length);
 
             // i는 firebase lkLabOffset number + 1 부터 시작해야함
-            for (let i = 99, len = items.length; i < len; i++) {
+            for (let i = 109, len = items.length; i < len; i++) {
                 console.log('Start', i);
                 const res = await getItems(`${LKLAB_HOST}${items[i].link}`, items[i].classify);
                 console.log('Result', res);
@@ -91,9 +91,11 @@ const getItems = async (url, classify) => {
 
         for (const item of items) {
             console.log('Item', item);
-            const itemDetail = await getItemDetail(`${LKLAB_HOST}/product${item.slice(1)}`, classify, itemId);
-            itemDetailList.push(itemDetail);
-            itemId += 1;
+            if (item !== './product_info.asp?g_no=12419&t_no=862') {
+                const itemDetail = await getItemDetail(`${LKLAB_HOST}/product${item.slice(1)}`, classify, itemId);
+                itemDetailList.push(itemDetail);
+                itemId += 1;
+            }
         }
         browser.close();
         return itemDetailList;
@@ -115,7 +117,6 @@ const getItemDetail = async (url, classify = 'test', itemId) => {
     try {
         await page.goto(url || LKLAB_DETAIL_TEST);
         await page.waitFor(1000);
-
         const image = await page.evaluate(() => {
             return document.querySelector('#content > #prod_top > #prod_thumb > form > #thumb_l > img').src;
         });
