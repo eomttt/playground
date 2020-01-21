@@ -40,7 +40,7 @@ const get = async () => {
             console.log('Whole len', items.length);
 
             // i는 firebase lkLabOffset number + 1 부터 시작해야함
-            for (let i = 109, len = items.length; i < len; i++) {
+            for (let i = 126, len = items.length; i < len; i++) {
                 console.log('Start', i);
                 const res = await getItems(`${LKLAB_HOST}${items[i].link}`, items[i].classify);
                 console.log('Result', res);
