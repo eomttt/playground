@@ -5,9 +5,10 @@ const kjGlassController = require('./kjGlass.controller');
 const LKLAB_HOST = 'http://lklab.com';
 const LKLAB_SPEC_TEST = 'http://lklab.com/product/product_list.asp?t_no=780';
 const LKLAB_DETAIL_TEST = 'http://lklab.com/product/product_info.asp?g_no=12419&t_no=862';
-const TYPE = 'expendables';
 const LKLAB_OFFSET = 'lkLabOffset';
 const MAX_ITEM_NUMBER = 1;
+
+const TYPE = 'expendables';
 
 const get = async () => {
     console.log('Start lkLab shop crwaling');
@@ -27,10 +28,14 @@ const get = async () => {
             await page.waitFor(1000);
             await page.click('#header > #gnb > .gnb_01');
             const items = await page.evaluate(() => {
+                const ALPHABET = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
                 const elements = Array.from(document.querySelectorAll('#header > #category_all > #category_list > ul > .list_02 > a'));
                 return elements.reduce((acc, cur) => {
+                    const one = cur.innerText.slice(0, 1);
+                    const alphabetIndex = ALPHABET.indexOf(one);
                     acc.push({
                         classify: cur.innerText,
+                        alphabet: ALPHABET[alphabetIndex],
                         link: cur.getAttribute('href')
                     });
                     return acc;
@@ -39,13 +44,16 @@ const get = async () => {
 
             console.log('Whole len', items.length);
 
+            let itemId = 114;
             // i는 firebase lkLabOffset number + 1 부터 시작해야함
-            for (let i = 126, len = items.length; i < len; i++) {
+            for (let i = 10, len = items.length; i < len; i++) {
                 console.log('Start', i);
-                const res = await getItems(`${LKLAB_HOST}${items[i].link}`, items[i].classify);
-                console.log('Result', res);
-                await kjGlassController.updateData(res, TYPE);
+                const type = `${TYPE}_${items[i].alphabet}`;
+                const res = await getItems(`${LKLAB_HOST}${items[i].link}`, items[i].classify, type, itemId);
+                await kjGlassController.updateData(res, type);
                 await kjGlassController.updateData({ number: i }, LKLAB_OFFSET);
+                const data = await kjGlassController.getData(type);
+                itemId = Number(data[data.length - 1].id) + 1;
             }
             pageNum += 1;
         }
@@ -58,7 +66,7 @@ const get = async () => {
     }
 };
 
-const getItems = async (url, classify) => {
+const getItems = async (url, classify, type, itemId) => {
     const browser = await puppeteer.launch({
         headless: false
     });
@@ -78,21 +86,14 @@ const getItems = async (url, classify) => {
             }, []);
         });
 
-        const existArray = await kjGlassController.getData(TYPE);
-
-        let itemId = existArray ? existArray.length + 1 : 1;
+        const existArray = await kjGlassController.getData(type);
         const itemDetailList = existArray ? [...existArray] : [];
-
-        if (itemDetailList.length > 0) {
-            itemDetailList[0] = null;
-            itemDetailList[1] = null;
-            itemDetailList[2] = null;
-        }
 
         for (const item of items) {
             console.log('Item', item);
+            console.log('Item id', itemId);
             if (item !== './product_info.asp?g_no=12419&t_no=862') {
-                const itemDetail = await getItemDetail(`${LKLAB_HOST}/product${item.slice(1)}`, classify, itemId);
+                const itemDetail = await getItemDetail(`${LKLAB_HOST}/product${item.slice(1)}`, classify, itemId, type);
                 itemDetailList.push(itemDetail);
                 itemId += 1;
             }
@@ -105,7 +106,7 @@ const getItems = async (url, classify) => {
     }
 };
 
-const getItemDetail = async (url, classify = 'test', itemId) => {
+const getItemDetail = async (url, classify = 'test', itemId, type) => {
     const browser = await puppeteer.launch({
         headless: false
     });
@@ -181,7 +182,7 @@ const getItemDetail = async (url, classify = 'test', itemId) => {
             specification: specificationObjects,
             tableItems: tableItems,
             title: `${englishTitle} (${korTitle})`,
-            type: TYPE
+            type: type
         };
         browser.close();
         return res;
