@@ -1,12 +1,16 @@
-console.log('Process node version', process.version);
+import { GraphQLServer } from 'graphql-yoga';
 
 const express = require('express');
 const bodyParser = require('body-parser');
+
+const graphQLServer = new GraphQLServer({});
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.raw());
+
+console.log('Process node version', process.version);
 
 const movieAPIRouter = require('./routes/movie');
 const fpTestAPIRouter = require('./routes/fpTest');
@@ -25,3 +29,5 @@ app.use('/', function (req, res) {
 app.listen(8080, () => {
     console.log('server is running on http://localhost:8080');
 });
+
+graphQLServer.start(() => console.log('Server is running on localhost:4000'));
