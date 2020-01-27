@@ -1,9 +1,14 @@
 import { GraphQLServer } from 'graphql-yoga';
+import resolvers from './graphql/resolvers';
 
 const express = require('express');
+
 const bodyParser = require('body-parser');
 
-const graphQLServer = new GraphQLServer({});
+const graphQLServer = new GraphQLServer({
+    typeDefs: 'graphql/scheme.graphql',
+    resolvers
+});
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
