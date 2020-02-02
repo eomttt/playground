@@ -8,7 +8,7 @@ const MOCK_THEATER_INFO = {
     title: 'CGV강릉',
     link: '/theaters/?areacode=12&theaterCode=0139&date=20200202'
 };
-const MOCK_TIME_TABLE_GANGWON_20200202 = '/common/showtimes/iframeTheater.aspx?areacode=12&theatercode=0139&date=20200203';
+const MOCK_TIME_TABLE_GANGWON_20200202 = '/common/showtimes/iframeTheater.aspx?areacode=12&theatercode=0139&date=20200202';
 
 const GANGWON_INDEX = 3;
 
@@ -91,7 +91,7 @@ const getRegions = async () => {
             });
         });
 
-        console.log('regions', regions);
+        return regions;
     } catch (error) {
         console.log('Get regions error', error);
     } finally {
@@ -115,7 +115,7 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
         await page.click(`#cgvwrap > #contaniner > #contents > .sect-common > .favorite-wrap > .sect-city > ul > li:nth-child(${regionIndex + 1})`);
         await page.waitFor(1000);
 
-        const theaters = await page.evaluate(() => {
+        const theatersInfo = await page.evaluate(() => {
             const elements = Array.from(document.querySelectorAll('#cgvwrap > #contaniner > #contents > .sect-common > .favorite-wrap > .sect-city > ul > .on > .area > ul > li > a'));
             return elements.map((element) => {
                 return {
@@ -125,7 +125,7 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
             });
         });
 
-        console.log('theaters', theaters);
+        return theatersInfo;
     } catch (error) {
         console.log('Get theater by region error', error);
     } finally {
@@ -177,7 +177,6 @@ const getTimeTable = async (timeTableUrl = MOCK_TIME_TABLE_GANGWON_20200202) => 
                 const title = item.querySelector('.info-movie > a > strong').innerText;
                 const timeTables = Array.from(item.querySelectorAll('.type-hall > .info-timetable > ul > li'));
                 const timeInfo = timeTables.map((timeTable) => {
-                    return timeTable.innerHTML;
                     return {
                         time: timeTable.querySelector('em').innerText,
                         seats: timeTable.querySelector('span').innerText
@@ -191,9 +190,7 @@ const getTimeTable = async (timeTableUrl = MOCK_TIME_TABLE_GANGWON_20200202) => 
             });
         });
 
-        // movieItems.forEach((movieItem) => {
-            console.log('AAA', movieItems)
-        // })
+        return movieItems;
     } catch (error) {
         console.log('Get time table error', error);
     } finally {
@@ -202,6 +199,7 @@ const getTimeTable = async (timeTableUrl = MOCK_TIME_TABLE_GANGWON_20200202) => 
 };
 
 module.exports.getByTitle = getByTitle;
+
 module.exports.getRegions = getRegions;
 module.exports.getTheatersByRegions = getTheatersByRegions;
 module.exports.getTimeTableUrl = getTimeTableUrl;
