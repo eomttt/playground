@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer');
 
-import { getByTitle, getRegions, getTheatersByRegions } from './movie-cgv.controller';
+import { getByTitle, getRegions, getTheatersByRegions, getTimeTable } from './movie-cgv.controller';
 
 const CGV_CONSTANT = {
     URL: 'http://www.cgv.co.kr/reserve/show-times/',
@@ -113,7 +113,8 @@ const _getCGV = async (movieTitle, region, { year, month, day }) => {
 };
 
 const get = async () => {
-    getTheatersByRegions(3);
+    getTimeTable();
+    // getTheatersByRegions(3);
     // getRegions();
     // getByTitle('남산의 부장들', '서울', { year: 2019, month: 11, day: 1 });
     // _getCGV('터미네이터', '서울', { year: 2019, month: 11, day: 1 });
