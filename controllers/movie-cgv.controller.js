@@ -8,6 +8,7 @@ const MOCK_THEATER_INFO = {
     title: 'CGV강릉',
     link: '/theaters/?areacode=12&theaterCode=0139&date=20200202'
 };
+const MOCK_TIME_TABLE_GANGWON_20200202 = '/common/showtimes/iframeTheater.aspx?areacode=12&theatercode=0139&date=20200203';
 
 const GANGWON_INDEX = 3;
 
@@ -132,8 +133,8 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
     }
 };
 
-const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
-    const { title, link } = theaterInfo;
+const getTimeTableUrl = async (theaterInfo = MOCK_THEATER_INFO) => {
+    const { link } = theaterInfo;
 
     const browser = await puppeteer.launch({
         headless: false
@@ -151,29 +152,50 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
             const iframe = document.querySelector('#cgvwrap > #contaniner > #contents > .wrap-theater > .cols-content > .col-detail > iframe');
             return iframe.getAttribute('src');
         });
-        await page.goto(`${CGV_HOST_URL}${iframeUrl}`);
+
+        return iframeUrl;
+    } catch (error) {
+        console.log('Get time table url error', error);
+    } finally {
+        browser.close();
+    }
+};
+
+const getTimeTable = async (timeTableUrl = MOCK_TIME_TABLE_GANGWON_20200202) => {
+    const browser = await puppeteer.launch({
+        headless: false
+    });
+    const page = await browser.newPage();
+
+    try {
+        await page.goto(`${CGV_HOST_URL}${timeTableUrl}`);
         await page.waitFor(1000);
 
-        const timeTables = await page.evaluate(() => {
-            const movieItems = document.querySelectorAll('.showtimes-wrap > .sect-showtimes > ul > li > .col-times');
-            return movieItems.map((movieItem) => {
-                const timeElements = Array.from(movieItems.querySelectorAll('.type-hall > .info-timetable > ul > li'));
+        const movieItems = await page.evaluate(() => {
+            const items = Array.from(document.querySelectorAll('.showtimes-wrap > .sect-showtimes > ul > li > .col-times'));
+            return items.map((item) => {
+                const title = item.querySelector('.info-movie > a > strong').innerText;
+                const timeTables = Array.from(item.querySelectorAll('.type-hall > .info-timetable > ul > li'));
+                const timeInfo = timeTables.map((timeTable) => {
+                    return timeTable.innerHTML;
+                    return {
+                        time: timeTable.querySelector('em').innerText,
+                        seats: timeTable.querySelector('span').innerText
+                    };
+                });
 
                 return {
-                    title: movieItem.querySelector('.info-movie > a > strong').innerText,
-                    times: timeElements.map((timeElement) => {
-                        return {
-                            time: timeElement.querySelector('em').innerText,
-                            info: timeElements.querySelector('span').innerText
-                        };
-                    })
+                    title,
+                    timeInfo
                 };
             });
         });
 
-        console.log('timeTables', timeTables);
+        // movieItems.forEach((movieItem) => {
+            console.log('AAA', movieItems)
+        // })
     } catch (error) {
-
+        console.log('Get time table error', error);
     } finally {
         browser.close();
     }
@@ -182,4 +204,5 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
 module.exports.getByTitle = getByTitle;
 module.exports.getRegions = getRegions;
 module.exports.getTheatersByRegions = getTheatersByRegions;
+module.exports.getTimeTableUrl = getTimeTableUrl;
 module.exports.getTimeTable = getTimeTable;
