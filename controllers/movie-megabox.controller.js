@@ -1,9 +1,13 @@
 const puppeteer = require('puppeteer');
 
-const MEGA_GET_BY_REGION = 'http://www.megabox.co.kr/?menuId=timetable-cinema';
+const MEGA_HOST_URL = 'https://www.megabox.co.kr/';
+const MEGA_GET_BY_REGION = 'https://www.megabox.co.kr/theater/list';
 
 const GANGWON_INDEX = 6;
-const GANGWON_NAM_CHUNCHEON_THEATER_INDEX = 0;
+const MOCK_THEATER_INFO = {
+    title: '속초',
+    link: '/theater/time?brchNo=2171'
+};
 
 const getRegions = async () => {
     const browser = await puppeteer.launch({
@@ -19,13 +23,13 @@ const getRegions = async () => {
         await page.goto(MEGA_GET_BY_REGION);
         await page.waitFor(1000);
         const regions = await page.evaluate(() => {
-            const elements = Array.from(document.querySelectorAll('.content_wrap > #main > #container > .section > .theater_lst > .content_wrap > .menu > li > a'));
+            const elements = Array.from(document.querySelectorAll('.body-wrap > .container > #contents > .inner-wrap > .theater-box > .theater-place > ul > li > .sel-city'));
             return elements.map((element) => {
                 return element.innerText;
             });
         });
 
-        return regions.slice(1, regions.length);
+        return regions;
     } catch (error) {
         console.log('Get regions error MEGA', error);
     } finally {
@@ -47,13 +51,18 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
         await page.goto(MEGA_GET_BY_REGION);
         await page.waitFor(1000);
         // Click region
-        await page.click(`.content_wrap > #main > #container > .section > .theater_lst > .content_wrap > .menu > li:nth-child(${regionIndex + 2})`);
+        await page.click(`.body-wrap > .container > #contents > .inner-wrap > .theater-box > .theater-place > ul > li:nth-child(${regionIndex + 1})`);
         await page.waitFor(1000);
 
         const theatersInfo = await page.evaluate(() => {
-            const elements = Array.from(document.querySelectorAll('.content_wrap > #main > #container > .section > .theater_lst > .content_wrap > .menu > li > .active > li > a'));
+            const elements = Array.from(document.querySelectorAll('.body-wrap > .container > #contents > .inner-wrap > .theater-box > .theater-place > ul > .on > .theater-list > ul > li > a'));
             return elements.map((element) => {
-                return element.innerText;
+                const hrefLink = element.getAttribute('href');
+                const linkArr = hrefLink.split('?');
+                return {
+                    title: element.innerText,
+                    link: `${linkArr[0]}/time?${linkArr[1]}` 
+                };
             });
         });
 
@@ -65,7 +74,7 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
     }
 };
 
-const getTimeTable = async (regionIndex = GANGWON_INDEX, theaterIndex = GANGWON_NAM_CHUNCHEON_THEATER_INDEX) => {
+const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
     const browser = await puppeteer.launch({
         headless: false
     });
@@ -76,10 +85,10 @@ const getTimeTable = async (regionIndex = GANGWON_INDEX, theaterIndex = GANGWON_
     });
 
     try {
-        await page.goto(MEGA_GET_BY_REGION);
+        await page.goto(`${MEGA_HOST_URL}${theaterInfo.link}`);
         await page.waitFor(1000);
         // Click region
-        await page.click(`.content_wrap > #main > #container > .section > .theater_lst > .content_wrap > .menu > li:nth-child(${regionIndex + 2})`);
+        await page.click('.body-wrap > #schdlContainer > #contents > .inner-wrap > .tab-list > ul > li:nth-child(1)');
         await page.waitFor(1000);
         // Click theater
         await page.click(`.content_wrap > #main > #container > .section > .theater_lst > .content_wrap > .menu > li > .active > li:nth-child(${theaterIndex + 1})`);

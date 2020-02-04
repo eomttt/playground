@@ -3,13 +3,12 @@ const puppeteer = require('puppeteer');
 const CGV_HOST_URL = 'http://www.cgv.co.kr';
 const CGV_GET_BY_REGION = 'http://www.cgv.co.kr/theaters/';
 
+const GANGWON_INDEX = 3;
 const MOCK_THEATER_INFO = {
     title: 'CGV강릉',
     link: '/theaters/?areacode=12&theaterCode=0139&date=20200202'
 };
 const MOCK_TIME_TABLE_GANGWON_20200202 = '/common/showtimes/iframeTheater.aspx?areacode=12&theatercode=0139&date=20200202';
-
-const GANGWON_INDEX = 3;
 
 const getRegions = async () => {
     const browser = await puppeteer.launch({
