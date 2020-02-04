@@ -52,6 +52,7 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
     try {
         await page.goto(CGV_GET_BY_REGION);
         await page.waitFor(1000);
+        // Click region
         await page.click(`#cgvwrap > #contaniner > #contents > .sect-common > .favorite-wrap > .sect-city > ul > li:nth-child(${regionIndex + 1})`);
         await page.waitFor(1000);
 
