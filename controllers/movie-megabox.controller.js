@@ -87,15 +87,9 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
     try {
         await page.goto(`${MEGA_HOST_URL}${theaterInfo.link}`);
         await page.waitFor(1000);
-        // Click region
-        await page.click('.body-wrap > #schdlContainer > #contents > .inner-wrap > .tab-list > ul > li:nth-child(1)');
-        await page.waitFor(1000);
-        // Click theater
-        await page.click(`.content_wrap > #main > #container > .section > .theater_lst > .content_wrap > .menu > li > .active > li:nth-child(${theaterIndex + 1})`);
-        await page.waitFor(1000);
 
         const theatersInfo = await page.evaluate(() => {
-            const items = Array.from(document.querySelectorAll('.content_wrap > #main > #container > .section > .content_wrap > #timeTableCinemaList > .movie_time_table > tbody > .lineheight_80'));
+            const items = Array.from(document.querySelectorAll('.body-wrap > #schdlContainer > #contents > .inner-wrap > .tab-cont-wrap > #tab02 > .theater-list-box > .theater-list'));
             return items.map((item) => {
                 const tiemTables = Array.from(item.querySelectorAll('td > .cinema_time > .time_info'));
                 const timeInfo = tiemTables.map((timeTable) => {
@@ -122,22 +116,6 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
             });
         });
 
-        const tempObject = {};
-        const result = theatersInfo.reduce((acc, cur) => {
-            if (cur.title) {
-                if (cur.title === tempObject.title) {
-                    acc.push(tempObject);
-                }
-                tempObject.title = cur.title;
-                tempObject.timeInfo = [];
-            }
-            tempObject.timeInfo = [...tempObject.timeInfo, ...cur.timeInfo];
-
-            return acc;
-        }, []);
-
-        console.log('theatersInfo', theatersInfo);
-        console.log('result', result);
         return result;
     } catch (error) {
         console.log('Get theater timetable error MEGA', error);
