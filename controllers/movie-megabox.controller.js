@@ -89,34 +89,24 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
         await page.waitFor(1000);
 
         const theatersInfo = await page.evaluate(() => {
-            const items = Array.from(document.querySelectorAll('.body-wrap > #schdlContainer > #contents > .inner-wrap > .tab-cont-wrap > #tab02 > .theater-list-box > .theater-list'));
+            const items = Array.from(document.querySelectorAll('.body-wrap > #schdlContainer > #contents > .inner-wrap > .tab-cont-wrap > #tab02 > .reserve > .theater-list'));
             return items.map((item) => {
-                const tiemTables = Array.from(item.querySelectorAll('td > .cinema_time > .time_info'));
-                const timeInfo = tiemTables.map((timeTable) => {
+                const title = item.querySelector('.theater-tit > p:nth-child(2)').innerText;
+                const timeTables = Array.from(item.querySelectorAll('.theater-type-box > .theater-time > .theater-time-box  > .time-list-table > tbody > tr > td > .td-ab > .txt-center > a'));
+                const timeInfo = timeTables.map((timeTable) => {
                     return {
                         time: timeTable.querySelector('.time').innerText,
-                        seats: timeTable.querySelector('.seat').innerText
+                        seats: timeTable.querySelector('.chair').innerText
                     };
                 });
-
-                const titleElement = item.querySelector('.title > div > strong > a');
-                let title = '';
-                if (titleElement) {
-                    title = titleElement.innerText;
-                    return {
-                        title,
-                        timeInfo
-                    };
-                } else {
-                    return {
-                        title: null,
-                        timeInfo
-                    };
-                }
+                return {
+                    title,
+                    timeInfo
+                };
             });
         });
 
-        return result;
+        return theatersInfo;
     } catch (error) {
         console.log('Get theater timetable error MEGA', error);
     } finally {
