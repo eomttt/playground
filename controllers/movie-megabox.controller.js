@@ -61,7 +61,7 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
                 const linkArr = hrefLink.split('?');
                 return {
                     title: element.innerText,
-                    link: `${linkArr[0]}/time?${linkArr[1]}` 
+                    link: `${linkArr[0]}/time?${linkArr[1]}`
                 };
             });
         });
