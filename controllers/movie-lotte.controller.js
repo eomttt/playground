@@ -84,7 +84,23 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
     });
 
     try {
+        await page.goto(theaterInfo.link);
+        await page.waitFor(1000);
 
+        const theatersInfo = await page.evaluate(() => {
+            const items = Array.from(document.querySelectorAll('#contents > .tab_wrap > .active > .tab_con > .mCustomScrollbar > #mCSB_1 > #mCSB_1_container > .time_select_wrap'));
+            return items.map((item) => {
+                const title = item.querySelector('.list_tit > p').innerText;
+                const timeTables = Array.from(item.querySelectorAll('.list_time > li'));
+                const timeInfo = timeTables.map((timeTable) => {
+
+                });
+                return {
+                    title,
+                    timeInfo
+                };
+            });
+        });
     } catch (error) {
         console.log('Get theater timetable error LOTTE', error);
     } finally {

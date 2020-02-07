@@ -3,7 +3,7 @@ import * as megaController from './movie-megabox.controller';
 import * as lotteController from './movie-lotte.controller';
 
 const get = async () => {
-    const result = await lotteController.getTheatersByRegions();
+    const result = await lotteController.getTimeTable();
 
     return result;
     // const cgvRes = await cgvController.getTimeTable();
