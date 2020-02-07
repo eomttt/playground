@@ -3,6 +3,10 @@ const puppeteer = require('puppeteer');
 const LOTTE_HOST_URL = 'https://www.lottecinema.co.kr/NLCHS';
 
 const GANGWON_INDEX = 7;
+const MOCK_THEATER_INFO = {
+    title: '동해',
+    link: 'https://www.lottecinema.co.kr/NLCHS/Cinema/Detail?divisionCode=1&detailDivisionCode=6&cinemaID=7002'
+};
 
 const getRegions = async () => {
     const browser = await puppeteer.launch({
@@ -48,7 +52,7 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
         // Click region
         await page.click('#header_section > #nav > ul > li:nth-child(3)');
         await page.waitFor(1000);
-        await page.click(`#header_section > #nav > ul > li:nth-child(3) > div > ul > li:nth-child(${regionIndex})`);
+        await page.click(`#header_section > #nav > ul > li:nth-child(3) > div > ul > li:nth-child(${regionIndex + 1})`);
         await page.waitFor(1000);
 
         const theatersInfo = await page.evaluate(() => {
@@ -69,5 +73,25 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
     }
 };
 
+const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
+    const browser = await puppeteer.launch({
+        headless: false
+    });
+    const page = await browser.newPage();
+
+    page.on('dialog', async dialog => {
+        await dialog.dismiss();
+    });
+
+    try {
+
+    } catch (error) {
+        console.log('Get theater timetable error LOTTE', error);
+    } finally {
+        browser.close();
+    }
+};
+
 module.exports.getRegions = getRegions;
 module.exports.getTheatersByRegions = getTheatersByRegions;
+module.exports.getTimeTable = getTimeTable;
