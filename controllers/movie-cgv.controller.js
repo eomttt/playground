@@ -1,3 +1,5 @@
+// TODO: 총 좌석 수 줌
+
 const puppeteer = require('puppeteer');
 
 const CGV_HOST_URL = 'http://www.cgv.co.kr';

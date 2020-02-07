@@ -1,3 +1,5 @@
+// TODO: 총 좌석 수 줌
+
 const puppeteer = require('puppeteer');
 
 const MEGA_HOST_URL = 'https://www.megabox.co.kr/';
