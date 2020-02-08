@@ -93,7 +93,11 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
                 const title = item.querySelector('.list_tit > p').innerText;
                 const timeTables = Array.from(item.querySelectorAll('.list_time > li'));
                 const timeInfo = timeTables.map((timeTable) => {
-
+                    return {
+                        time: timeTable.querySelector('a > dl > .time > strong').innerText,
+                        seats: timeTable.querySelector('a > dl > .seat > strong').innerText,
+                        wholeSeats: timeTable.querySelector('a > dl > .seat').innerText.split('/')[1]
+                    };
                 });
                 return {
                     title,
@@ -101,6 +105,8 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
                 };
             });
         });
+
+        return theatersInfo;
     } catch (error) {
         console.log('Get theater timetable error LOTTE', error);
     } finally {
