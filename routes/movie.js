@@ -23,4 +23,14 @@ router.get('/get-theaters-by-region', async (req, res) => {
     }
 });
 
+router.get('/time-table', async (req, res) => {
+    try {
+        const { type, theaterLink } = req.query;
+        const result = await movieController.getTimeTalbe(type, decodeURI(theaterLink));
+        res.send(result);
+    } catch (error) {
+        console.log('Movie get time table error', error);
+    }
+});
+
 module.exports = router;

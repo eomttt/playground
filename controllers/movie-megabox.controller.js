@@ -76,7 +76,7 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
     }
 };
 
-const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
+const getTimeTable = async (link = MOCK_THEATER_INFO.link) => {
     const browser = await puppeteer.launch({
         headless: false
     });
@@ -87,7 +87,7 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
     });
 
     try {
-        await page.goto(`${MEGA_HOST_URL}${theaterInfo.link}`);
+        await page.goto(`${MEGA_HOST_URL}${link}`);
         await page.waitFor(2000);
 
         const movieItems = await page.evaluate(() => {

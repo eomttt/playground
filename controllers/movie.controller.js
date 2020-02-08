@@ -26,5 +26,12 @@ const getTheatersByRegion = async (type, regionIndex) => {
     return result;
 };
 
+const getTimeTalbe = async (type, theaterLink) => {
+    const result = await CONTROLLER[type].getTimeTable(theaterLink);
+
+    return result;
+};
+
 module.exports.getRegion = getRegion;
 module.exports.getTheatersByRegion = getTheatersByRegion;
+module.exports.getTimeTalbe = getTimeTalbe;
