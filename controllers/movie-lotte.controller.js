@@ -85,7 +85,7 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
 
     try {
         await page.goto(theaterInfo.link);
-        await page.waitFor(1000);
+        await page.waitFor(2000);
 
         const theatersInfo = await page.evaluate(() => {
             const items = Array.from(document.querySelectorAll('#contents > .tab_wrap > .active > .tab_con > .mCustomScrollbar > #mCSB_1 > #mCSB_1_container > .time_select_wrap'));
