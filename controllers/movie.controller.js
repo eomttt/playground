@@ -3,11 +3,11 @@ import * as megaController from './movie-megabox.controller';
 import * as lotteController from './movie-lotte.controller';
 
 const get = async () => {
-    const mega = await megaController.getTimeTable();
+    // const mega = await megaController.getTimeTable();
     const lotte = await lotteController.getTimeTable();
+    // const cgv = await cgvController.getTimeTable();
 
     return {
-        mega,
         lotte
     };
     // const cgvRes = await cgvController.getTimeTable();

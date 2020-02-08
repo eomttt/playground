@@ -90,12 +90,11 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
         await page.goto(`${MEGA_HOST_URL}${theaterInfo.link}`);
         await page.waitFor(2000);
 
-        const theatersInfo = await page.evaluate(() => {
+        const movieItems = await page.evaluate(() => {
             const items = Array.from(document.querySelectorAll('.body-wrap > #schdlContainer > #contents > .inner-wrap > .tab-cont-wrap > #tab02 > .reserve > .theater-list'));
             return items.map((item) => {
                 const title = item.querySelector('.theater-tit > p:nth-child(2)').innerText;
                 const timeTables = Array.from(item.querySelectorAll('.theater-type-box'));
-
                 const timeInfo = timeTables.map((timeTable) => {
                     const wholeSeats = timeTable.querySelector('.theater-type > .chair').innerText;
                     const timesAndSeats = Array.from(timeTable.querySelectorAll('.theater-time > .theater-time-box > .time-list-table > tbody > tr > td'));
@@ -115,14 +114,14 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
             });
         });
 
-        return theatersInfo.map((theaterInfo) => {
+        return movieItems.map((movieItem) => {
             return {
-                title: theaterInfo.title,
-                timeInfo: theaterInfo.timeInfo.reduce((acc, cur) => {
+                title: movieItem.title,
+                timeInfo: movieItem.timeInfo.reduce((acc, cur) => {
                     return [...acc, ...cur];
                 }, [])
             };
-        });
+        })
     } catch (error) {
         console.log('Get theater timetable error MEGA', error);
     } finally {

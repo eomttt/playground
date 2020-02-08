@@ -119,14 +119,18 @@ const getTimeTable = async (timeTableUrl = MOCK_TIME_TABLE_GANGWON_20200202) => 
             const items = Array.from(document.querySelectorAll('.showtimes-wrap > .sect-showtimes > ul > li > .col-times'));
             return items.map((item) => {
                 const title = item.querySelector('.info-movie > a > strong').innerText;
-                const timeTables = Array.from(item.querySelectorAll('.type-hall > .info-timetable > ul > li'));
+                const timeTables = Array.from(item.querySelectorAll('.type-hall'));
                 const timeInfo = timeTables.map((timeTable) => {
-                    return {
-                        time: timeTable.querySelector('em').innerText,
-                        seats: timeTable.querySelector('span').innerText
-                    };
+                    const wholeSeats = timeTable.querySelector('.info-hall > ul > li:nth-child(3)').innerText;
+                    const timesAndSeats = Array.from(timeTable.querySelectorAll('.info-timetable > ul > li > a'));
+                    return timesAndSeats.map((timeAndSeat) => {
+                        return {
+                            time: timeAndSeat.querySelector('em').innerText,
+                            seats: timeAndSeat.querySelector('span').innerText,
+                            wholeSeats
+                        };
+                    });
                 });
-
                 return {
                     title,
                     timeInfo
@@ -134,7 +138,14 @@ const getTimeTable = async (timeTableUrl = MOCK_TIME_TABLE_GANGWON_20200202) => 
             });
         });
 
-        return movieItems;
+        return movieItems.map((movieItem) => {
+            return {
+                title: movieItem.title,
+                timeInfo: movieItem.timeInfo.reduce((acc, cur) => {
+                    return [...acc, ...cur];
+                }, [])
+            };
+        });
     } catch (error) {
         console.log('Get time table error', error);
     } finally {

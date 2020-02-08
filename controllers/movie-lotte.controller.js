@@ -87,7 +87,7 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
         await page.goto(theaterInfo.link);
         await page.waitFor(2000);
 
-        const theatersInfo = await page.evaluate(() => {
+        const movieItems = await page.evaluate(() => {
             const items = Array.from(document.querySelectorAll('#contents > .tab_wrap > .active > .tab_con > .mCustomScrollbar > #mCSB_1 > #mCSB_1_container > .time_select_wrap'));
             return items.map((item) => {
                 const title = item.querySelector('.list_tit > p').innerText;
@@ -106,7 +106,7 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
             });
         });
 
-        return theatersInfo;
+        return movieItems;
     } catch (error) {
         console.log('Get theater timetable error LOTTE', error);
     } finally {
