@@ -11,9 +11,6 @@ const MOCK_THEATER_INFO = {
     link: '/theaters/?areacode=12&theaterCode=0139&date=20200202'
 };
 
-// 요청 date 가 현재 날짜 보다 작은 경우 무조건 현재 날짜로 가게 된다.
-const MOCK_TIME_TABLE_GANGWON_20200202 = '/common/showtimes/iframeTheater.aspx?areacode=12&theatercode=0139&date=20200202';
-
 const getRegions = async () => {
     const browser = await puppeteer.launch({
         headless: false
@@ -105,7 +102,9 @@ const getTimeTableUrl = async (theaterInfo = MOCK_THEATER_INFO) => {
     }
 };
 
-const getTimeTable = async (timeTableUrl = MOCK_TIME_TABLE_GANGWON_20200202) => {
+const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
+    const timeTableUrl = await getTimeTableUrl(theaterInfo);
+
     const browser = await puppeteer.launch({
         headless: false
     });

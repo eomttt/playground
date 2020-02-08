@@ -121,7 +121,7 @@ const getTimeTable = async (theaterInfo = MOCK_THEATER_INFO) => {
                     return [...acc, ...cur];
                 }, [])
             };
-        })
+        });
     } catch (error) {
         console.log('Get theater timetable error MEGA', error);
     } finally {

@@ -28,7 +28,7 @@ const getRegions = async () => {
             });
         });
 
-        return regions;
+        return regions.splice(1, regions.length);
     } catch (error) {
         console.log('Get regions error Lotte', error);
     } finally {
@@ -52,7 +52,7 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
         // Click region
         await page.click('#header_section > #nav > ul > li:nth-child(3)');
         await page.waitFor(1000);
-        await page.click(`#header_section > #nav > ul > li:nth-child(3) > div > ul > li:nth-child(${regionIndex + 1})`);
+        await page.click(`#header_section > #nav > ul > li:nth-child(3) > div > ul > li:nth-child(${regionIndex + 2})`);
         await page.waitFor(1000);
 
         const theatersInfo = await page.evaluate(() => {
