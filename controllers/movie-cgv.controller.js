@@ -4,6 +4,7 @@ const puppeteer = require('puppeteer');
 
 const CGV_HOST_URL = 'http://www.cgv.co.kr';
 const CGV_GET_BY_REGION = 'http://www.cgv.co.kr/theaters/';
+const CGV_BOX_OFFICES_URL = 'http://www.cgv.co.kr/movies/';
 
 const GANGWON_INDEX = 3;
 const MOCK_THEATER_INFO = {
@@ -150,7 +151,42 @@ const getTimeTable = async (link = MOCK_THEATER_INFO.link) => {
     }
 };
 
+const getBoxOffice = async () => {
+    const browser = await puppeteer.launch({
+        headless: false
+    });
+    const page = await browser.newPage();
+
+    page.on('dialog', async dialog => {
+        await dialog.dismiss();
+    });
+
+    try {
+        await page.goto(CGV_BOX_OFFICES_URL);
+        await page.waitFor(1000);
+
+        const boxOffices = await page.evaluate(() => {
+            const elements = Array.from(document.querySelectorAll('#cgvwrap > #contaniner > #contents > .wrap-movie-chart > .sect-movie-chart > ol > li'));
+            return elements.map((element) => {
+                return {
+                    image: element.querySelector('.box-image > a > .thumb-image > img') && element.querySelector('.box-image > a > .thumb-image > img').getAttribute('src'),
+                    title: element.querySelector('.box-contents > a > .title') && element.querySelector('.box-contents > a > .title').innerText
+                };
+            });
+        });
+
+        return boxOffices.filter((movieData) => {
+            return movieData.image && movieData.title;
+        });
+    } catch (error) {
+        console.log('Get theater by region error', error);
+    } finally {
+        browser.close();
+    }
+};
+
 module.exports.getRegions = getRegions;
 module.exports.getTheatersByRegions = getTheatersByRegions;
 module.exports.getTimeTableUrl = getTimeTableUrl;
 module.exports.getTimeTable = getTimeTable;
+module.exports.getBoxOffice = getBoxOffice;

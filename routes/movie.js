@@ -3,7 +3,7 @@ const router = express.Router();
 
 const movieController = require('../controllers/movie.controller');
 
-router.get('/get-region', async (req, res) => {
+router.get('/region', async (req, res) => {
     try {
         const { type } = req.query;
         const result = await movieController.getRegion(type);
@@ -13,7 +13,7 @@ router.get('/get-region', async (req, res) => {
     }
 });
 
-router.get('/get-theaters-by-region', async (req, res) => {
+router.get('/theaters-by-region', async (req, res) => {
     try {
         const { type, regionIndex } = req.query;
         const result = await movieController.getTheatersByRegion(type, regionIndex);
@@ -30,6 +30,15 @@ router.get('/time-table', async (req, res) => {
         res.send(result);
     } catch (error) {
         console.log('Movie get time table error', error);
+    }
+});
+
+router.get('/box-office', async (_req, res) => {
+    try {
+        const result = await movieController.getBoxOffice();
+        res.send(result);
+    } catch (error) {
+        console.log('Movie get box office error', error);
     }
 });
 

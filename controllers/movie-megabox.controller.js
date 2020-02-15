@@ -129,6 +129,11 @@ const getTimeTable = async (link = MOCK_THEATER_INFO.link) => {
     }
 };
 
+const getBoxOffice = () => {
+
+};
+
 module.exports.getRegions = getRegions;
 module.exports.getTheatersByRegions = getTheatersByRegions;
 module.exports.getTimeTable = getTimeTable;
+module.exports.getBoxOffice = getBoxOffice;

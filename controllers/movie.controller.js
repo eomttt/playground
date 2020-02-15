@@ -32,6 +32,13 @@ const getTimeTalbe = async (type, theaterLink) => {
     return result;
 };
 
+const getBoxOffice = async () => {
+    const result = await CONTROLLER[MOVIE_TYPE.CGV].getBoxOffice();
+
+    return result;
+};
+
 module.exports.getRegion = getRegion;
 module.exports.getTheatersByRegion = getTheatersByRegion;
 module.exports.getTimeTalbe = getTimeTalbe;
+module.exports.getBoxOffice = getBoxOffice;
