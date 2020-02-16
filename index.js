@@ -32,7 +32,9 @@ app.use('/', function (req, res) {
 });
 
 app.listen(8080, () => {
-    console.log('server is running on http://localhost:8080');
+    console.log('Express server is running on http://localhost:8080');
 });
 
-graphQLServer.start(() => console.log('Server is running on localhost:4000'));
+graphQLServer.start(() => {
+    console.log('GraphQL server is running on http://localhost:4000');
+});
