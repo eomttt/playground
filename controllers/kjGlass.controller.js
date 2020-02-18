@@ -2,15 +2,13 @@ const puppeteer = require('puppeteer');
 const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 const UUID = require('uuid-v4');
-const AWS = require('aws-sdk');
 const fs = require('fs');
 
 const serviceAccount = require('../keys/kjglass-60495-firebase-adminsdk-hleqt-8bf4fcb144.json');
 
 const BUCKET_NAME = 'kjglass-60495.appspot.com';
 
-AWS.config.loadFromPath('aws.config.json');
-const s3 = new AWS.S3();
+const awsService = require('../services/aws.service');
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -220,7 +218,7 @@ const uploadImageToS3 = (imageUrl, fileName) => {
                     Body: fs.createReadStream('temp.jpg'),
                     ContentType: 'image/jpg'
                 };
-                s3.upload(param, (error, data) => {
+                awsService.uploadToS3(param, (error, data) => {
                     if (error) {
                         console.log('Upload s3 error', error);
                     }
