@@ -1,6 +1,6 @@
-import * as cgvController from './movie-cgv.controller';
-import * as megaController from './movie-megabox.controller';
-import * as lotteController from './movie-lotte.controller';
+const cgvController = require('./movie-cgv.controller');
+const megaController = require('./movie-megabox.controller');
+const lotteController = require('./movie-lotte.controller');
 
 const MOVIE_TYPE = {
     MEGA: 'megaBox',

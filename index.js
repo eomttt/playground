@@ -1,15 +1,17 @@
-import { GraphQLServer } from 'graphql-yoga';
-import resolvers from './graphql/resolvers';
+// const 
+
+// import { GraphQLServer } from 'graphql-yoga';
+// import resolvers from './graphql/resolvers';
 
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
-const graphQLServer = new GraphQLServer({
-    typeDefs: 'graphql/scheme.graphql',
-    resolvers
-});
+// const graphQLServer = new GraphQLServer({
+//     typeDefs: 'graphql/scheme.graphql',
+//     resolvers
+// });
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -38,6 +40,6 @@ app.listen(8080, () => {
     console.log('Express server is running on http://localhost:8080');
 });
 
-graphQLServer.start(() => {
-    console.log('GraphQL server is running on http://localhost:4000');
-});
+// graphQLServer.start(() => {
+//     console.log('GraphQL server is running on http://localhost:4000');
+// });
