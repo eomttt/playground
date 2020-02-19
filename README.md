@@ -18,3 +18,6 @@ Node server for playground
 ## Movie site Crwaling
 + Get Movie datam (CGV, MegaBox, Lotte Cinema)
 + Using puppeteer
+
+## Get subtitles
++ Get subtitles from any video (English)
