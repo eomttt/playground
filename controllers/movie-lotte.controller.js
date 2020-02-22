@@ -74,8 +74,12 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
 };
 
 const getTimeTable = async (link = MOCK_THEATER_INFO.link) => {
+    console.log('GET TIME TABLE LOTTE', link);
     const browser = await puppeteer.launch({
-        headless: false
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox'
+        ]
     });
     const page = await browser.newPage();
 

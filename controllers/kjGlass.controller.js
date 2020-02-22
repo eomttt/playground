@@ -4,18 +4,18 @@ const fetch = require('node-fetch');
 const UUID = require('uuid-v4');
 const fs = require('fs');
 
-const serviceAccount = require('../keys/kjglass-60495-firebase-adminsdk-hleqt-8bf4fcb144.json');
+// const serviceAccount = require('../keys/kjglass-60495-firebase-adminsdk-hleqt-8bf4fcb144.json');
 
-const BUCKET_NAME = 'kjglass-60495.appspot.com';
+// const BUCKET_NAME = 'kjglass-60495.appspot.com';
 
 const awsService = require('../services/aws.service');
 
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    storageBucket: BUCKET_NAME,
-    databaseURL: 'https://kjglass-60495.firebaseio.com',
-    databaseAuthVariableOverride: null
-});
+// admin.initializeApp({
+//     credential: admin.credential.cert(serviceAccount),
+//     storageBucket: BUCKET_NAME,
+//     databaseURL: 'https://kjglass-60495.firebaseio.com',
+//     databaseAuthVariableOverride: null
+// });
 
 const KJGLASS_HOST = 'http://kjglass.co.kr';
 const KJGLASS_SPEC_TEST_URL = 'http://kjglass.co.kr/shop.php?shopId=1000200010157';
@@ -187,24 +187,24 @@ const getSpec = async (url, type, itemId) => {
 };
 
 const uploadImage = (imageUrl, fileName) => {
-    return new Promise((resolve) => {
-        const bucket = admin.storage().bucket();
-        const uuid = UUID();
-        const file = bucket.file(fileName);
-        fetch(imageUrl).then((res) => {
-            const contentType = res.headers.get('content-type');
-            const writeStream = file.createWriteStream({
-                metadata: {
-                    contentType,
-                    firebaseStorageDownloadTokens: uuid
-                }
-            });
-            res.body.pipe(writeStream).on('finish', (data) => {
-                const url = `https://firebasestorage.googleapis.com/v0/b/${BUCKET_NAME}/o/${encodeURIComponent(fileName)}?alt=media&token=${uuid}`;
-                resolve(url);
-            });
-        });
-    });
+    // return new Promise((resolve) => {
+    //     const bucket = admin.storage().bucket();
+    //     const uuid = UUID();
+    //     const file = bucket.file(fileName);
+    //     fetch(imageUrl).then((res) => {
+    //         const contentType = res.headers.get('content-type');
+    //         const writeStream = file.createWriteStream({
+    //             metadata: {
+    //                 contentType,
+    //                 firebaseStorageDownloadTokens: uuid
+    //             }
+    //         });
+    //         res.body.pipe(writeStream).on('finish', (data) => {
+    //             const url = `https://firebasestorage.googleapis.com/v0/b/${BUCKET_NAME}/o/${encodeURIComponent(fileName)}?alt=media&token=${uuid}`;
+    //             resolve(url);
+    //         });
+    //     });
+    // });
 };
 
 const uploadImageToS3 = (imageUrl, fileName) => {
@@ -230,32 +230,32 @@ const uploadImageToS3 = (imageUrl, fileName) => {
 };
 
 const updateData = async (data, root) => {
-    const bucket = admin.database();
-    const ref = bucket.ref(`${root || 'test'}`);
-    ref.set(data);
-    return 'Success update data';
+    // const bucket = admin.database();
+    // const ref = bucket.ref(`${root || 'test'}`);
+    // ref.set(data);
+    // return 'Success update data';
 };
 
 const pushData = async (data, root) => {
-    const refType = `${root || 'test'}`;
-    const bucket = admin.database();
-    const ref = bucket.ref(refType);
-    const existData = await getData(refType);
+    // const refType = `${root || 'test'}`;
+    // const bucket = admin.database();
+    // const ref = bucket.ref(refType);
+    // const existData = await getData(refType);
 
-    const updateData = existData ? [...existData, ...data] : [...data];
+    // const updateData = existData ? [...existData, ...data] : [...data];
 
-    ref.update(updateData);
-    return 'Success push data';
+    // ref.update(updateData);
+    // return 'Success push data';
 };
 
 const getData = (type) => {
-    return new Promise((resolve, reject) => {
-        const bucket = admin.database();
-        const ref = bucket.ref(`${type || 'test'}`);
-        ref.once('value', function (snapshot) {
-            resolve(snapshot.val());
-        });
-    });
+    // return new Promise((resolve, reject) => {
+    //     const bucket = admin.database();
+    //     const ref = bucket.ref(`${type || 'test'}`);
+    //     ref.once('value', function (snapshot) {
+    //         resolve(snapshot.val());
+    //     });
+    // });
 };
 
 module.exports.get = get;

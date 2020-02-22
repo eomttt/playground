@@ -1,6 +1,7 @@
-// TODO: 총 좌석 수 줌
-
 const puppeteer = require('puppeteer');
+const axios = require('axios');
+const cheerio = require('cheerio');
+const client = require('cheerio-httpcli');
 
 const MEGA_HOST_URL = 'https://www.megabox.co.kr';
 const MEGA_GET_BY_REGION = 'https://www.megabox.co.kr/theater/list';
@@ -76,9 +77,28 @@ const getTheatersByRegions = async (regionIndex = GANGWON_INDEX) => {
     }
 };
 
+const _getTimeTableTest = async (link) => {
+    try {
+        const html = await axios.get(`${MEGA_HOST_URL}${link}`);
+        const $ = cheerio.load(html.data);
+        const $list = $('.body-wrap').children('#schdlContainer').children('#contents').children('.inner-wrap').children('.tab-cont-wrap').children('#tab02');
+        console.log('###', $list.html());
+
+        return html.data;
+    } catch (error) {
+        console.log('Get Time Table test error', error);
+    }
+};
+
 const getTimeTable = async (link = MOCK_THEATER_INFO.link) => {
+    console.log('GET TIME TABLE MEGA', link);
     const browser = await puppeteer.launch({
-        headless: false
+        headless: true,
+        networkIdleTimeout: 5000,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox'
+        ]
     });
     const page = await browser.newPage();
 
@@ -87,9 +107,13 @@ const getTimeTable = async (link = MOCK_THEATER_INFO.link) => {
     });
 
     try {
-        await page.goto(`${MEGA_HOST_URL}${link}`);
-        await page.waitFor(2000);
+        console.log('AAAAAA');
+        await page.goto(`${MEGA_HOST_URL}${link}`, {
+            waitUntil: 'domcontentloaded'
+        });
 
+        await page.waitFor(1000);
+        console.log('BBBBB');
         const movieItems = await page.evaluate(() => {
             const items = Array.from(document.querySelectorAll('.body-wrap > #schdlContainer > #contents > .inner-wrap > .tab-cont-wrap > #tab02 > .reserve > .theater-list'));
             return items.map((item) => {

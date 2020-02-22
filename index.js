@@ -26,6 +26,8 @@ const kjGlassApiRouter = require('./routes/kjGlass');
 const lkLabApiRouter = require('./routes/lkLab');
 const subTitlesApiRouter = require('./routes/subtitles');
 
+const PORT = process.env.PORT;
+
 app.use('/api/movie', movieAPIRouter);
 app.use('/api/fptest', fpTestAPIRouter);
 app.use('/api/kjglass', kjGlassApiRouter);
@@ -36,8 +38,8 @@ app.use('/', function (req, res) {
     res.send('Bobby Kim, Tei Eom Playground server.');
 });
 
-app.listen(8080, () => {
-    console.log('Express server is running on http://localhost:8080');
+app.listen(PORT || 8000, () => {
+    console.log(`Express server is running on http://localhost:${PORT || 8000}`);
 });
 
 // graphQLServer.start(() => {
