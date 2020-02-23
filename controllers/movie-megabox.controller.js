@@ -102,6 +102,8 @@ const getTimeTable = async (link = MOCK_THEATER_INFO.link) => {
     });
     const page = await browser.newPage();
 
+    await page.setDefaultNavigationTimeout(0)
+
     page.on('dialog', async dialog => {
         await dialog.dismiss();
     });
@@ -109,7 +111,7 @@ const getTimeTable = async (link = MOCK_THEATER_INFO.link) => {
     try {
         console.log('AAAAAA');
         await page.goto(`${MEGA_HOST_URL}${link}`, {
-            waitUntil: 'domcontentloaded'
+            waitUntil: 'load'
         });
 
         await page.waitFor(1000);
