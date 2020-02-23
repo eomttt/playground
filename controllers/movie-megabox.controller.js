@@ -111,7 +111,7 @@ const getTimeTable = async (link = MOCK_THEATER_INFO.link) => {
     try {
         console.log('AAAAAA');
         await page.goto(`${MEGA_HOST_URL}${link}`, {
-            waitUntil: 'load'
+            waitUntil: 'domcontentloaded'
         });
 
         await page.waitFor(1000);
@@ -139,6 +139,7 @@ const getTimeTable = async (link = MOCK_THEATER_INFO.link) => {
                 };
             });
         });
+        console.log("CCCC", movieItems);
 
         return movieItems.map((movieItem) => {
             return {
