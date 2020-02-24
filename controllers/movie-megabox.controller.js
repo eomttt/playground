@@ -93,12 +93,13 @@ const _getTimeTableTest = async (link) => {
 const getTimeTable = async (link = MOCK_THEATER_INFO.link) => {
     console.log('GET TIME TABLE MEGA', link);
     const browser = await puppeteer.launch({
-        headless: true,
-        networkIdleTimeout: 5000,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox'
-        ]
+        headless: false,
+        // headless: true,
+        // networkIdleTimeout: 5000,
+        // args: [
+        //     '--no-sandbox',
+        //     '--disable-setuid-sandbox'
+        // ]
     });
     const page = await browser.newPage();
 
@@ -125,9 +126,11 @@ const getTimeTable = async (link = MOCK_THEATER_INFO.link) => {
                     const wholeSeats = timeTable.querySelector('.theater-type > .chair').innerText;
                     const timesAndSeats = Array.from(timeTable.querySelectorAll('.theater-time > .theater-time-box > .time-list-table > tbody > tr > td'));
                     return timesAndSeats.map((timeAndSeat) => {
+                        const timeEle = timeAndSeat.querySelector('.td-ab > .txt-center > a > .time');
+                        const seatsEle = timeAndSeat.querySelector('.td-ab > .txt-center > a > .chair');
                         return {
-                            time: timeAndSeat.querySelector('.td-ab > .txt-center > a > .time').innerText,
-                            seats: timeAndSeat.querySelector('.td-ab > .txt-center > a > .chair').innerText,
+                            time: timeEle ? timeEle.innerText : '',
+                            seats: seatsEle ? seatsEle.innerText : '',
                             wholeSeats
                         };
                     });
