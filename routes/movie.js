@@ -42,4 +42,24 @@ router.get('/box-office', async (_req, res) => {
     }
 });
 
+router.get('/set-location', async (req, res) => {
+    try {
+        const { type, index } = req.query;
+        const result = await movieController.setLocation(type, index);
+        res.send(result);
+    } catch (error) {
+        console.log('Movie set location error', error);
+    }
+});
+
+router.get('/set-location-test', (req, res) => {
+    try {
+        const { type } = req.query;
+        const result = movieController.setLocationTest(type);
+        res.send(result);
+    } catch (error) {
+        console.log('Movie set location error', error);
+    }
+});
+
 module.exports = router;
